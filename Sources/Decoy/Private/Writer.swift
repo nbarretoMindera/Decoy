@@ -43,10 +43,10 @@ class Writer: WriterInterface {
 private extension Writer {
 
   var path: String? {
-    processInfo.environment[MockMarks.Constants.mockDirectory]
+    processInfo.environment[Decoy.Constants.mockDirectory]
   }
 
   var file: String? {
-    processInfo.environment[MockMarks.Constants.mockFilename]
+    processInfo.environment[Decoy.Constants.mockFilename]
   }
 }

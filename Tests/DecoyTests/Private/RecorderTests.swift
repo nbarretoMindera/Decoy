@@ -1,18 +1,18 @@
 import Foundation
 import XCTest
-@testable import MockMarks
+@testable import Decoy
 
 final class RecorderTests: XCTestCase {
 
   func test_shouldRecord_shouldReadFromProcessInfo_whenTrue() {
     let info = MockProcessInfo()
-    info.mockedEnvironment = [MockMarks.Constants.isRecording: String(true)]
+    info.mockedEnvironment = [Decoy.Constants.isRecording: String(true)]
     XCTAssert(Recorder(processInfo: info).shouldRecord)
   }
 
   func test_shouldRecord_shouldReadFromProcessInfo_whenFalse() {
     let info = MockProcessInfo()
-    info.mockedEnvironment = [MockMarks.Constants.isRecording: String(false)]
+    info.mockedEnvironment = [Decoy.Constants.isRecording: String(false)]
     XCTAssertFalse(Recorder(processInfo: info).shouldRecord)
   }
 
@@ -36,7 +36,7 @@ final class RecorderTests: XCTestCase {
     XCTAssertEqual(recorder.recordings.count, 3)
   }
 
-  func test_record_shouldRecordValidMockMark() {
+  func test_record_shouldRecordValidStub() {
     let recorder = Recorder()
     let url = URL(string: "A")!
     let data = try? JSONSerialization.data(withJSONObject: ["A": "B"])

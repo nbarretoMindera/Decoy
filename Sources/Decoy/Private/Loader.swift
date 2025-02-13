@@ -1,12 +1,12 @@
 import Foundation
 
 protocol LoaderInterface {
-  func loadJSON(from url: URL) -> [MockMark]?
+  func loadJSON(from url: URL) -> [Stub]?
 }
 
 /// Simple typealiases used to make this structure cleaner to read.
-private typealias MockMarkDictionary = [String: Any]
-private typealias MockMarkArray = [MockMarkDictionary]
+private typealias StubDictionary = [String: Any]
+private typealias StubArray = [StubDictionary]
 
 /// Used to load mocks from JSON files, and decode them.
 struct Loader: LoaderInterface {
@@ -26,32 +26,32 @@ struct Loader: LoaderInterface {
   /// - Parameters:
   ///   - url: The location at which to look for a JSON file containing ordered, mocked responses.
   ///
-  /// - Returns: An optional array of `MockMark`s, read sequentially from the named JSON.
-  func loadJSON(from url: URL) -> [MockMark]? {
+  /// - Returns: An optional array of `Stub`s, read sequentially from the named JSON.
+  func loadJSON(from url: URL) -> [Stub]? {
     guard let data = try? Data(contentsOf: url) else { return nil }
-    guard let json = try? JSONSerialization.jsonObject(with: data) as? MockMarkArray else { return nil }
+    guard let json = try? JSONSerialization.jsonObject(with: data) as? StubArray else { return nil }
 
-    return json.compactMap { mockMark(from: $0) }
+    return json.compactMap { stub(from: $0) }
   }
 
-  private func mockMark(from json: [String: Any]) -> MockMark? {
+  private func stub(from json: [String: Any]) -> Stub? {
     guard let urlString = json[Constants.url] as? String else { return nil }
     guard let url = URL(string: urlString) else { return nil }
-    guard let mock = json[Constants.mock] as? MockMarkDictionary else { return nil }
+    guard let mock = json[Constants.mock] as? StubDictionary else { return nil }
 
     let data = data(from: mock)
     let urlResponse = urlResponse(to: url, from: mock)
-    let response = MockMark.Response(data: data, urlResponse: urlResponse, error: nil)
+    let response = Stub.Response(data: data, urlResponse: urlResponse, error: nil)
 
-    return MockMark(url: url, response: response)
+    return Stub(url: url, response: response)
   }
 
-  private func data(from mock: MockMarkDictionary) -> Data? {
+  private func data(from mock: StubDictionary) -> Data? {
     guard let json = mock[Constants.json] else { return nil }
     return try? JSONSerialization.data(withJSONObject: json)
   }
 
-  private func urlResponse(to url: URL, from mock: MockMarkDictionary) -> HTTPURLResponse? {
+  private func urlResponse(to url: URL, from mock: StubDictionary) -> HTTPURLResponse? {
     HTTPURLResponse(
       url: url,
       statusCode: mock[Constants.statusCode] as? Int ?? 200,
@@ -60,7 +60,7 @@ struct Loader: LoaderInterface {
     )
   }
 
-  private func error(from mock: MockMarkDictionary) -> [String: Any]? {
+  private func error(from mock: StubDictionary) -> [String: Any]? {
     return nil
   }
 }

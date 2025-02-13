@@ -1,13 +1,13 @@
 import Foundation
 import XCTest
-@testable import MockMarks
+@testable import Decoy
 
 final class WriterTests: XCTestCase {
 
   func test_write_shouldThrowFilePathNotFound_whenPathIsMissing() {
     let processInfo = MockProcessInfo()
     processInfo.mockedEnvironment = [
-      MockMarks.Constants.mockFilename: "A"
+      Decoy.Constants.mockFilename: "A"
     ]
 
     XCTAssertThrowsError(try Writer(processInfo: processInfo).write(recordings: [[:]])) { error in
@@ -18,7 +18,7 @@ final class WriterTests: XCTestCase {
   func test_write_shouldThrowFileNameNotFound_whenFileIsMissing() {
     let processInfo = MockProcessInfo()
     processInfo.mockedEnvironment = [
-      MockMarks.Constants.mockDirectory: "A"
+      Decoy.Constants.mockDirectory: "A"
     ]
 
     XCTAssertThrowsError(try Writer(processInfo: processInfo).write(recordings: [[:]])) { error in
@@ -40,8 +40,8 @@ final class WriterTests: XCTestCase {
 
     let processInfo = MockProcessInfo()
     processInfo.mockedEnvironment = [
-      MockMarks.Constants.mockDirectory: "A",
-      MockMarks.Constants.mockFilename: "B"
+      Decoy.Constants.mockDirectory: "A",
+      Decoy.Constants.mockFilename: "B"
     ]
 
     try? Writer(processInfo: processInfo, fileManager: fileManager).write(recordings: [[:]])

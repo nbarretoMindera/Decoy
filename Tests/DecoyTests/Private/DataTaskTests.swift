@@ -1,6 +1,6 @@
 import Foundation
 import XCTest
-@testable import MockMarks
+@testable import Decoy
 
 final class DataTaskTests: XCTestCase {
 
@@ -18,14 +18,14 @@ final class DataTaskTests: XCTestCase {
 
   func test_init_shouldStoreTask() {
     let task = URLSessionDataTask()
-    let mockMarksTask = DataTask(mocking: task) { _, _, _ in }
-    XCTAssertIdentical(task, mockMarksTask.task)
+    let DecoyTask = DataTask(mocking: task) { _, _, _ in }
+    XCTAssertIdentical(task, DecoyTask.task)
   }
 
   func test_overriddenResume_shouldCallInternalResume() {
     let task = MockURLSessionDataTask()
-    let mockMarksTask = DataTask(mocking: task) { _, _, _ in }
-    mockMarksTask.resume()
+    let DecoyTask = DataTask(mocking: task) { _, _, _ in }
+    DecoyTask.resume()
     XCTAssert(task.didCallResume)
   }
 
@@ -33,8 +33,8 @@ final class DataTaskTests: XCTestCase {
     mockedProcessInfo.mockedIsRunningXCUI = true
 
     let task = MockURLSessionDataTask()
-    let mockMarksTask = DataTask(mocking: task) { _, _, _ in }
-    mockMarksTask.resume(processInfo: mockedProcessInfo)
+    let DecoyTask = DataTask(mocking: task) { _, _, _ in }
+    DecoyTask.resume(processInfo: mockedProcessInfo)
     XCTAssert(task.didCallResume)
   }
 
@@ -42,8 +42,8 @@ final class DataTaskTests: XCTestCase {
     mockedProcessInfo.mockedIsRunningXCUI = false
 
     let task = MockURLSessionDataTask()
-    let mockMarksTask = DataTask(mocking: task) { _, _, _ in }
-    mockMarksTask.resume(processInfo: mockedProcessInfo)
+    let DecoyTask = DataTask(mocking: task) { _, _, _ in }
+    DecoyTask.resume(processInfo: mockedProcessInfo)
     XCTAssert(task.didCallResume)
   }
 
@@ -53,8 +53,8 @@ final class DataTaskTests: XCTestCase {
     let task = MockURLSessionDataTask()
     task.mockedCurrentRequest = URLRequest(url: URL(string: "http://no-mocks.for.me")!)
 
-    let mockMarksTask = DataTask(mocking: task) { _, _, _ in }
-    mockMarksTask.resume(processInfo: mockedProcessInfo)
+    let DecoyTask = DataTask(mocking: task) { _, _, _ in }
+    DecoyTask.resume(processInfo: mockedProcessInfo)
     XCTAssert(task.didCallResume)
   }
 
@@ -63,8 +63,8 @@ final class DataTaskTests: XCTestCase {
 
     let url = URL(string: "A")!
     guard let data = try? JSONSerialization.data(withJSONObject: ["A": "B"]) else { return XCTFail(#function) }
-    let response = MockMark.Response(data: data, urlResponse: nil, error: nil)
-    MockMarks.shared.queue.queue(mockmark: MockMark(url: URL(string: "A")!, response: response))
+    let response = Stub.Response(data: data, urlResponse: nil, error: nil)
+    Decoy.shared.queue.queue(Stub: Stub(url: URL(string: "A")!, response: response))
 
     let task = MockURLSessionDataTask()
     task.mockedCurrentRequest = URLRequest(url: url)

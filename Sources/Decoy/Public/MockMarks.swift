@@ -1,21 +1,21 @@
 import Foundation
 
-/// The `MockMarks` enum is the core of the library, and allows you to queue mocked responses
+/// The `Decoy` enum is the core of the library, and allows you to queue mocked responses
 /// to calls to specific endpoints via the `queue` and `queueValidResponse` methods.
-public class MockMarks {
+public class Decoy {
 
   public struct Constants {
-    public static let isXCUI = "MOCKMARKS_IS_XCUI"
-    public static let isRecording = "MOCKMARKS_IS_RECORDING"
-    public static let mockDirectory = "MOCKMARKS_MOCK_DIRECTORY"
-    public static let mockFilename = "MOCKMARKS_MOCK_FILENAME"
+    public static let isXCUI = "Decoy_IS_XCUI"
+    public static let isRecording = "Decoy_IS_RECORDING"
+    public static let mockDirectory = "Decoy_MOCK_DIRECTORY"
+    public static let mockFilename = "Decoy_MOCK_FILENAME"
     public static let mocksFolder = "__Mocks__"
   }
 
-  /// Singleton used to access MockMarks from the outside without the need to instantiate it.
-  public static let shared = MockMarks()
+  /// Singleton used to access Decoy from the outside without the need to instantiate it.
+  public static let shared = Decoy()
 
-  /// Performs initial setup for MockMarks. Should be called as soon as possible after your app launches
+  /// Performs initial setup for Decoy. Should be called as soon as possible after your app launches
   /// so that calls made immediately following app launch can be mocked, if required. Early exits
   /// immediately if not in the context of UI testing to avoid unnecessary processing.
   ///
@@ -25,8 +25,8 @@ public class MockMarks {
     self.session = session
 
     guard isXCUI(processInfo: processInfo) else { return }
-    guard let directory = processInfo.environment[MockMarks.Constants.mockDirectory] else { return }
-    guard let filename = processInfo.environment[MockMarks.Constants.mockFilename] else { return }
+    guard let directory = processInfo.environment[Decoy.Constants.mockDirectory] else { return }
+    guard let filename = processInfo.environment[Decoy.Constants.mockFilename] else { return }
 
     var url = URL(safePath: directory)
     url.safeAppend(path: filename)
@@ -34,11 +34,11 @@ public class MockMarks {
     guard let json = loader.loadJSON(from: url) else { return }
 
     json.forEach {
-      queue.queue(mockmark: MockMark(url: $0.url, response: $0.response))
+      queue.queue(Stub: Stub(url: $0.url, response: $0.response))
     }
   }
 
-  /// Used to ascertain whether or not MockMarks is currently running within the context of a `MockMarksUITestCase`.
+  /// Used to ascertain whether or not Decoy is currently running within the context of a `DecoyUITestCase`.
   public func isXCUI(processInfo: ProcessInfo = .processInfo) -> Bool {
     processInfo.environment[Constants.isXCUI] == String(true)
   }

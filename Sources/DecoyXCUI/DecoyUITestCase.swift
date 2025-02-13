@@ -1,7 +1,7 @@
 import XCTest
-import MockMarks
+import Decoy
 
-open class MockMarksUITestCase: XCTestCase {
+open class DecoyUITestCase: XCTestCase {
 
   public var app: XCUIApplication!
 
@@ -9,20 +9,20 @@ open class MockMarksUITestCase: XCTestCase {
     super.setUp()
 
     var url = URL(string: path)!.deletingLastPathComponent()
-    url.safeAppend(path: MockMarks.Constants.mocksFolder)
+    url.safeAppend(path: Decoy.Constants.mocksFolder)
 
     app = XCUIApplication()
 
-    app.launchEnvironment[MockMarks.Constants.isRecording] = String(recording)
-    app.launchEnvironment[MockMarks.Constants.isXCUI] = String(true)
-    app.launchEnvironment[MockMarks.Constants.mockDirectory] = url.absoluteString
-    app.launchEnvironment[MockMarks.Constants.mockFilename] = "\(mockName).json"
+    app.launchEnvironment[Decoy.Constants.isRecording] = String(recording)
+    app.launchEnvironment[Decoy.Constants.isXCUI] = String(true)
+    app.launchEnvironment[Decoy.Constants.mockDirectory] = url.absoluteString
+    app.launchEnvironment[Decoy.Constants.mockFilename] = "\(mockName).json"
 
     app.launch()
   }
 }
 
-public extension MockMarksUITestCase {
+public extension DecoyUITestCase {
 
   var mockName: String {
     name

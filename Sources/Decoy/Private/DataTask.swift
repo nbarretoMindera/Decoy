@@ -25,24 +25,24 @@ class DataTask: URLSessionDataTask {
   }
 
   /// Override from `URLSessionDataTask` to allow tasks to be resumed when there is no need to
-  /// inject `ProcessInfo`, i.e. when not running MockMarks' own unit tests.
+  /// inject `ProcessInfo`, i.e. when not running Decoy' own unit tests.
   override func resume() {
     self.resume(processInfo: .processInfo)
   }
 
-  /// Begin executing the task. If a mocked response for this task is provided within MockMarks's
+  /// Begin executing the task. If a mocked response for this task is provided within Decoy's
   /// queued responses, it will be passed to the `completionHandler`. If such a response is
   /// not provided, the superclass will handle the function. We also need to be running UI tests to
   /// proceed with the custom implementation, so we don't interfere with the real app.
   func resume(processInfo: ProcessInfo = .processInfo) {
-    guard let url = task.currentRequest?.url, MockMarks.shared.isXCUI(processInfo: processInfo) else {
+    guard let url = task.currentRequest?.url, Decoy.shared.isXCUI(processInfo: processInfo) else {
       return task.resume()
     }
 
-    /// Ask MockMarks to mock the call. If it has a queued response, it will call the completion
+    /// Ask Decoy to mock the call. If it has a queued response, it will call the completion
     /// handler. If not, tell the task to resume using the superclass's implementation of `resume`,
     /// which may hit the real network, etc.
-    if !MockMarks.shared.dispatchNextQueuedResponse(for: url, to: completionHandler) {
+    if !Decoy.shared.dispatchNextQueuedResponse(for: url, to: completionHandler) {
       task.resume()
     }
   }

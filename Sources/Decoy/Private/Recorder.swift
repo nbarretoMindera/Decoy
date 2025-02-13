@@ -7,7 +7,7 @@ protocol RecorderInterface {
   func record(url: URL, data: Data?, response: URLResponse?, error: Error?)
 }
 
-/// Used to record all API calls which come through the MockMarks' `session`.
+/// Used to record all API calls which come through the Decoy' `session`.
 class Recorder: RecorderInterface {
   /// An array of each recorded response in the current app session.
   var recordings = [[String: Any]]()
@@ -23,7 +23,7 @@ class Recorder: RecorderInterface {
   /// Whether or not the app is running in the context of recording tests, as determined by
   /// the provided `ProcessInfo` object's launch environment..
   var shouldRecord: Bool {
-    processInfo.environment[MockMarks.Constants.isRecording] == String(true)
+    processInfo.environment[Decoy.Constants.isRecording] == String(true)
   }
 
   /// Makes a recording of the provided data, response, and error to the specifed URL.
@@ -34,16 +34,16 @@ class Recorder: RecorderInterface {
   ///   - response: Optionally, the URL response returned from the call.
   ///   - error: Optionally, the error returned from the call.
   func record(url: URL, data: Data?, response: URLResponse?, error: Error?) {
-    let mockmark = MockMark(
+    let Stub = Stub(
       url: url,
-      response: MockMark.Response(
+      response: Stub.Response(
         data: data,
         urlResponse: response as? HTTPURLResponse,
         error: nil
       )
     )
 
-    recordings.insert(mockmark.asJSON, at: 0)
+    recordings.insert(Stub.asJSON, at: 0)
 
     try? writer.write(recordings: recordings)
   }

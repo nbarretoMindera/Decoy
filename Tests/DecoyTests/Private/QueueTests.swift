@@ -1,6 +1,6 @@
 import Foundation
 import XCTest
-@testable import MockMarks
+@testable import Decoy
 
 final class QueueTests: XCTestCase {
 
@@ -17,28 +17,28 @@ final class QueueTests: XCTestCase {
   }
 
   func test_queue_shouldCreateKey_whenItDoesNotExist() {
-    queue.queue(mockmark: MockMark(url: url, response: .init(data: nil, urlResponse: nil, error: nil)))
+    queue.queue(Stub: Stub(url: url, response: .init(data: nil, urlResponse: nil, error: nil)))
     XCTAssertNotNil(queue.queuedResponses[url])
   }
 
   func test_queue_shouldSaveResponse() {
-    let response: MockMark.Response = .init(data: testData1, urlResponse: nil, error: nil)
-    queue.queue(mockmark: MockMark(url: url, response: response))
+    let response: Stub.Response = .init(data: testData1, urlResponse: nil, error: nil)
+    queue.queue(Stub: Stub(url: url, response: response))
     XCTAssertEqual(queue.queuedResponses[url]?.first?.data, testData1)
   }
 
   func test_queue_shouldInsertResponseAtPositionZero() {
-    let response1: MockMark.Response = .init(data: testData1, urlResponse: nil, error: nil)
-    let response2: MockMark.Response = .init(data: testData2, urlResponse: nil, error: nil)
-    queue.queue(mockmark: MockMark(url: url, response: response1))
-    queue.queue(mockmark: MockMark(url: url, response: response2))
+    let response1: Stub.Response = .init(data: testData1, urlResponse: nil, error: nil)
+    let response2: Stub.Response = .init(data: testData2, urlResponse: nil, error: nil)
+    queue.queue(Stub: Stub(url: url, response: response1))
+    queue.queue(Stub: Stub(url: url, response: response2))
     XCTAssertEqual(queue.queuedResponses[url]?[0].data, testData2)
     XCTAssertEqual(queue.queuedResponses[url]?[1].data, testData1)
   }
 
   func test_queue_shouldPreserveStatusCode() {
-    let response: MockMark.Response = .init(data: nil, urlResponse: urlResponse, error: nil)
-    queue.queue(mockmark: MockMark(url: url, response: response))
+    let response: Stub.Response = .init(data: nil, urlResponse: urlResponse, error: nil)
+    queue.queue(Stub: Stub(url: url, response: response))
 
     let statusCode = queue.queuedResponses[url]?.first?.urlResponse?.statusCode
     XCTAssertEqual(url, urlResponse.url)
@@ -46,8 +46,8 @@ final class QueueTests: XCTestCase {
   }
 
   func test_queue_shouldPreserveError() {
-    let response: MockMark.Response = .init(data: nil, urlResponse: nil, error: error)
-    queue.queue(mockmark: MockMark(url: url, response: response))
+    let response: Stub.Response = .init(data: nil, urlResponse: nil, error: error)
+    queue.queue(Stub: Stub(url: url, response: response))
 
     guard let savedError = queue.queuedResponses[url]?.first?.error else {
       return XCTFail(#function)
@@ -62,14 +62,14 @@ final class QueueTests: XCTestCase {
   }
 
   func test_dispatchNextQueuedResponse_shouldReturnTrue_whenURLHasQueuedResponses() {
-    queue.queue(mockmark: MockMark(url: url, response: emptyResponse))
+    queue.queue(Stub: Stub(url: url, response: emptyResponse))
     XCTAssertTrue(queue.dispatchNextQueuedResponse(for: url, to: { _, _, _ in }))
   }
 
   func test_dispatchNextQueuedResponse_shouldReturnTrue_multipleTimes_thenFalse() {
-    queue.queue(mockmark: MockMark(url: url, response: emptyResponse))
-    queue.queue(mockmark: MockMark(url: url, response: emptyResponse))
-    queue.queue(mockmark: MockMark(url: url, response: emptyResponse))
+    queue.queue(Stub: Stub(url: url, response: emptyResponse))
+    queue.queue(Stub: Stub(url: url, response: emptyResponse))
+    queue.queue(Stub: Stub(url: url, response: emptyResponse))
     XCTAssertTrue(queue.dispatchNextQueuedResponse(for: url, to: { _, _, _ in }))
     XCTAssertTrue(queue.dispatchNextQueuedResponse(for: url, to: { _, _, _ in }))
     XCTAssertTrue(queue.dispatchNextQueuedResponse(for: url, to: { _, _, _ in }))
@@ -78,7 +78,7 @@ final class QueueTests: XCTestCase {
 
   func test_dispatchNextQueuedResponse_shouldCallCompletion() {
     let exp = expectation(description: #function)
-    queue.queue(mockmark: MockMark(url: url, response: emptyResponse))
+    queue.queue(Stub: Stub(url: url, response: emptyResponse))
     _ = queue.dispatchNextQueuedResponse(for: url) { _ in exp.fulfill() }
     waitForExpectations(timeout: 0.01)
   }
@@ -87,8 +87,8 @@ final class QueueTests: XCTestCase {
     URL(string: "A")!
   }
 
-  var emptyResponse: MockMark.Response {
-    MockMark.Response(data: nil, urlResponse: nil, error: nil)
+  var emptyResponse: Stub.Response {
+    Stub.Response(data: nil, urlResponse: nil, error: nil)
   }
 
   var testData1: Data {

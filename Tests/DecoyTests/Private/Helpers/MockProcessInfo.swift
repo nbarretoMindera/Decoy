@@ -1,5 +1,5 @@
 import Foundation
-import MockMarks
+import Decoy
 
 class MockProcessInfo: ProcessInfo {
   var mockedIsRunningXCUI = false
@@ -10,8 +10,8 @@ class MockProcessInfo: ProcessInfo {
       return mockedEnvironment
     } else {
       return [
-        MockMarks.Constants.mockDirectory: "MockMarksTests",
-        MockMarks.Constants.isXCUI: String(mockedIsRunningXCUI)
+        Decoy.Constants.mockDirectory: "DecoyTests",
+        Decoy.Constants.isXCUI: String(mockedIsRunningXCUI)
       ]
     }
   }

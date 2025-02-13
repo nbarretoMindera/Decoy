@@ -1,9 +1,9 @@
 import Foundation
 
 protocol QueueInterface {
-  var queuedResponses: [URL: [MockMark.Response]] { get set }
+  var queuedResponses: [URL: [Stub.Response]] { get set }
 
-  func queue(mockmark: MockMark)
+  func queue(Stub: Stub)
   func dispatchNextQueuedResponse(for url: URL, to completion: @escaping DataTask.CompletionHandler) -> Bool
 }
 
@@ -11,19 +11,19 @@ protocol QueueInterface {
 class Queue: QueueInterface {
 
   /// A set of responses. Calls to URLs matching the keys will sequentially be mocked with data in the response.
-  var queuedResponses = [URL: [MockMark.Response]]()
+  var queuedResponses = [URL: [Stub.Response]]()
 
   /// Queues a provided response to a given URL. With this function, you can mock the data returned, as well as the
   /// `URLResponse` and any potential `Error`s, to see how your app handles them.
   ///
   /// - Parameters:
-  ///   - mockmark: The `MockMark` containing URL and response information for the mock.
-  func queue(mockmark: MockMark) {
-    if queuedResponses[mockmark.url] == nil {
-      queuedResponses[mockmark.url] = []
+  ///   - Stub: The `Stub` containing URL and response information for the mock.
+  func queue(Stub: Stub) {
+    if queuedResponses[Stub.url] == nil {
+      queuedResponses[Stub.url] = []
     }
 
-    queuedResponses[mockmark.url]?.insert(mockmark.response, at: 0)
+    queuedResponses[Stub.url]?.insert(Stub.response, at: 0)
   }
 
   /// Dispatches the next queued response for the provided URL. Checks the queued response array for responses

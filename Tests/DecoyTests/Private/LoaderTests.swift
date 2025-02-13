@@ -1,6 +1,6 @@
 import Foundation
 import XCTest
-@testable import MockMarks
+@testable import Decoy
 
 final class LoaderTests: XCTestCase {
 

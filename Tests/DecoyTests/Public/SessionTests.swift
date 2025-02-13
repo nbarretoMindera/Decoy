@@ -1,21 +1,21 @@
 import Foundation
 import XCTest
-@testable import MockMarks
+@testable import Decoy
 
 final class SessionTests: XCTestCase {
 
   private var mockURLSession: MockSession!
-  private var mockMarksSession: Session!
+  private var DecoySession: Session!
 
   override func setUp() {
     super.setUp()
     mockURLSession = MockSession()
-    MockMarks.shared.recorder.recordings.removeAll()
-    mockMarksSession = Session(mocking: mockURLSession)
+    Decoy.shared.recorder.recordings.removeAll()
+    DecoySession = Session(mocking: mockURLSession)
   }
 
   override func tearDown() {
-    mockMarksSession = nil
+    DecoySession = nil
     mockURLSession = nil
     super.tearDown()
   }
@@ -46,40 +46,40 @@ final class SessionTests: XCTestCase {
   // MARK: - dataTaskWithURLRequest
 
   func test_dataTaskWithURLRequest_shouldReturnAppropriateSubclass() {
-    let task = mockMarksSession.dataTask(with: urlRequest, completionHandler: completion)
+    let task = DecoySession.dataTask(with: urlRequest, completionHandler: completion)
     XCTAssert(task is DataTask)
   }
 
   func test_dataTaskWithURLRequest_shouldDeferCompletionHandlerToSuperclass() {
-    _ = mockMarksSession.dataTask(with: urlRequest) { data, _, _ in
+    _ = DecoySession.dataTask(with: urlRequest) { data, _, _ in
       XCTAssertEqual(data!, self.stringData)
     }
   }
 
   func test_dataTaskWithURLRequest_shouldNotRecordWhenRecordingIsDisabled() {
-    _ = mockMarksSession.dataTask(with: url) { _, _, _ in }
+    _ = DecoySession.dataTask(with: url) { _, _, _ in }
     XCTAssert(mockURLSession.didCallDataTaskWithURL)
-    XCTAssert(MockMarks.shared.recorder.recordings.isEmpty)
+    XCTAssert(Decoy.shared.recorder.recordings.isEmpty)
   }
 
   func test_dataTaskWithURLRequest_shouldRecordWhenRecordingIsEnabled() {
     let mockRecorder = MockRecorder()
     mockRecorder.mockedShouldRecord = true
 
-    mockMarksSession.recorder = mockRecorder
-    _ = mockMarksSession.dataTask(with: urlRequest) { _, _, _ in }
+    DecoySession.recorder = mockRecorder
+    _ = DecoySession.dataTask(with: urlRequest) { _, _, _ in }
     XCTAssert(mockRecorder.didCallRecord)
   }
 
   // MARK: - dataTaskWithURL
 
   func test_dataTaskWithURL_shouldDeferResponseFromSuperclass() {
-    _ = mockMarksSession.dataTask(with: url) { _, _, _ in }
+    _ = DecoySession.dataTask(with: url) { _, _, _ in }
     XCTAssert(mockURLSession.didCallDataTaskWithURL)
   }
 
   func test_dataTaskWithURL_shouldDeferCompletionHandlerToSuperclass() {
-    _ = mockMarksSession.dataTask(with: url) { data, _, _ in
+    _ = DecoySession.dataTask(with: url) { data, _, _ in
       XCTAssertEqual(data!, self.stringData)
     }
   }
@@ -88,8 +88,8 @@ final class SessionTests: XCTestCase {
     let mockRecorder = MockRecorder()
     mockRecorder.mockedShouldRecord = true
 
-    mockMarksSession.recorder = mockRecorder
-    _ = mockMarksSession.dataTask(with: url) { _, _, _ in }
+    DecoySession.recorder = mockRecorder
+    _ = DecoySession.dataTask(with: url) { _, _, _ in }
     XCTAssert(mockRecorder.didCallRecord)
   }
 }

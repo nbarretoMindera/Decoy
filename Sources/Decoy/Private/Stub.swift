@@ -1,7 +1,7 @@
 import Foundation
 
 /// A data structure representing a mocked response to a specific URL.
-struct MockMark {
+struct Stub {
   /// The URL to which queries will return the associated mock.
   let url: URL
   /// The mocked response which will be returned to the `Response`'s `url`.
@@ -22,7 +22,7 @@ struct MockMark {
     }
   }
 
-  /// Display the MockMark encoded as a JSON dictionary.
+  /// Display the Stub encoded as a JSON dictionary.
   var asJSON: [String: Any] {
     var json = [String: Any]()
 
