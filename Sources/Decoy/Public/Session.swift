@@ -15,7 +15,7 @@ public protocol SessionInterface {
 }
 
 /// A subclass of `URLSession` which injects Decoy's subclassed `URLSessionDataTask` objects.
-public class Session: URLSession, SessionInterface {
+public class Session: URLSession, SessionInterface, @unchecked Sendable {
   /// The underlying `URLSession` being mocked.
   let urlSession: URLSession
 

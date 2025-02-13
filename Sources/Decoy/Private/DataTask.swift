@@ -2,7 +2,7 @@ import Foundation
 
 /// A subclass of `URLSessionDataTask` which checks for mocked responses. If mocks are found, they will be
 /// passed to the completion handler. If mocks are not found, the superclass will handle the function as standard.
-class DataTask: URLSessionDataTask {
+class DataTask: URLSessionDataTask, @unchecked Sendable {
   /// Internal extensions used for cleaner-to-read code.
   typealias CompletionHandler = ((Data?, URLResponse?, Error?)) -> Void
 
