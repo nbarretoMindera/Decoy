@@ -1,0 +1,13 @@
+[
+  {
+    "mock": {
+      "json": [
+        "MOCKED OR WHATEVER"
+      ],
+      "responseCode": 200,
+      "httpVersion": null,
+      "headerFields": null,
+      "error": {}
+    }
+  }
+]
