@@ -1,10 +1,3 @@
-//
-//  File.swift
-//  
-//
-//  Created by Charman, Luke on 22/03/2023.
-//
-
 import Foundation
 
 protocol WriterInterface {
@@ -17,7 +10,6 @@ enum WriterError: Error {
 }
 
 class Writer: WriterInterface {
-
   private let processInfo: ProcessInfo
   private let fileManager: FileManager
 
@@ -41,7 +33,6 @@ class Writer: WriterInterface {
 }
 
 private extension Writer {
-
   var path: String? {
     processInfo.environment[Decoy.Constants.mockDirectory]
   }

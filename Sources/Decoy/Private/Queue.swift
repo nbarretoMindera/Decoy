@@ -9,7 +9,6 @@ protocol QueueInterface {
 
 /// Used to queue mocked responses to calls to various endpoints.
 class Queue: QueueInterface {
-
   /// A set of responses. Calls to URLs matching the keys will sequentially be mocked with data in the response.
   var queuedResponses = [URL: [Stub.Response]]()
 

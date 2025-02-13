@@ -3,7 +3,6 @@ import XCTest
 @testable import Decoy
 
 final class StubTests: XCTestCase {
-
   func test_json_shouldReturnNil_whenThereIsNoData() {
     let Stub = Stub(
       url: URL(string: "A")!,

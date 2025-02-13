@@ -3,7 +3,6 @@ import XCTest
 @testable import Decoy
 
 final class RecorderTests: XCTestCase {
-
   func test_shouldRecord_shouldReadFromProcessInfo_whenTrue() {
     let info = MockProcessInfo()
     info.mockedEnvironment = [Decoy.Constants.isRecording: String(true)]

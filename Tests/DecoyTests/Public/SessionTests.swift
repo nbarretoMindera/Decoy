@@ -3,7 +3,6 @@ import XCTest
 @testable import Decoy
 
 final class SessionTests: XCTestCase {
-
   private var mockURLSession: MockSession!
   private var DecoySession: Session!
 

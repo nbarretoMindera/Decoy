@@ -1,9 +1,8 @@
+@testable import Decoy
 import Foundation
 import XCTest
-@testable import Decoy
 
 final class DecoyTests: XCTestCase {
-
   override func setUp() {
     super.setUp()
     Decoy.shared.queue.queuedResponses.removeAll()

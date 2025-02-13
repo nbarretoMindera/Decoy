@@ -3,7 +3,6 @@ import XCTest
 @testable import Decoy
 
 final class WriterTests: XCTestCase {
-
   func test_write_shouldThrowFilePathNotFound_whenPathIsMissing() {
     let processInfo = MockProcessInfo()
     processInfo.mockedEnvironment = [

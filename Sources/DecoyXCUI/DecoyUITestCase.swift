@@ -2,7 +2,6 @@ import XCTest
 import Decoy
 
 open class DecoyUITestCase: XCTestCase {
-
   public var app: XCUIApplication!
 
   public func setUp(path: String = #filePath, recording: Bool) {

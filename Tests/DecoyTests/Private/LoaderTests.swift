@@ -3,7 +3,6 @@ import XCTest
 @testable import Decoy
 
 final class LoaderTests: XCTestCase {
-
   private var loader: Loader!
 
   override func setUp() {

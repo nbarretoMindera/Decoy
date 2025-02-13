@@ -3,7 +3,6 @@ import Foundation
 /// The `Decoy` enum is the core of the library, and allows you to queue mocked responses
 /// to calls to specific endpoints via the `queue` and `queueValidResponse` methods.
 public class Decoy {
-
   public struct Constants {
     public static let isXCUI = "Decoy_IS_XCUI"
     public static let isRecording = "Decoy_IS_RECORDING"

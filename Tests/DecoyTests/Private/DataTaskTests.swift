@@ -3,7 +3,6 @@ import XCTest
 @testable import Decoy
 
 final class DataTaskTests: XCTestCase {
-
   var mockedProcessInfo: MockProcessInfo!
 
   override func setUp() {

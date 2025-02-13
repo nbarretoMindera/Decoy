@@ -3,7 +3,6 @@ import XCTest
 @testable import Decoy
 
 final class QueueTests: XCTestCase {
-
   var queue: Queue!
 
   override func setUp() {
