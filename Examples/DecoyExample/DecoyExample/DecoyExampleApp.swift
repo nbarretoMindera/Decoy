@@ -10,7 +10,10 @@ struct DecoyExampleApp: App {
       /// If we are, we inject a Decoy `Session` mocking the `.shared` singleton instance.
       /// If not, we pass in the standard singleton, meaning in production code, Decoy is not used.
       if Decoy.isXCUI() {
-        ContentView(api: APIClient(session: Session(mocking: .shared)))
+        ContentView(api: APIClient(session: Decoy.shared.session)
+          .onAppear(){
+            Decoy.shared.setUp()
+          }
       } else {
         ContentView(api: APIClient(session: .shared))
       }
