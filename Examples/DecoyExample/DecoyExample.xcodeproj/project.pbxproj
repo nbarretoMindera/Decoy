@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		A3762FF62D5E58660054EC3D /* Decoy in Frameworks */ = {isa = PBXBuildFile; productRef = A3762FF52D5E58660054EC3D /* Decoy */; };
+		81B174EC2D5F6BB900518C53 /* Decoy in Frameworks */ = {isa = PBXBuildFile; productRef = 81B174EB2D5F6BB900518C53 /* Decoy */; };
 		A3762FF82D5E58660054EC3D /* DecoyXCUI in Frameworks */ = {isa = PBXBuildFile; productRef = A3762FF72D5E58660054EC3D /* DecoyXCUI */; };
 /* End PBXBuildFile section */
 
@@ -44,7 +44,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A3762FF62D5E58660054EC3D /* Decoy in Frameworks */,
+				81B174EC2D5F6BB900518C53 /* Decoy in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -59,11 +59,19 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		81B174EA2D5F6BB900518C53 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		A3762FBE2D5E57E90054EC3D = {
 			isa = PBXGroup;
 			children = (
 				A3762FC92D5E57E90054EC3D /* DecoyExample */,
 				A3762FE42D5E57EA0054EC3D /* DecoyExampleUITests */,
+				81B174EA2D5F6BB900518C53 /* Frameworks */,
 				A3762FC82D5E57E90054EC3D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -97,7 +105,7 @@
 			);
 			name = DecoyExample;
 			packageProductDependencies = (
-				A3762FF52D5E58660054EC3D /* Decoy */,
+				81B174EB2D5F6BB900518C53 /* Decoy */,
 			);
 			productName = DecoyExample;
 			productReference = A3762FC72D5E57E90054EC3D /* DecoyExample.app */;
@@ -338,8 +346,8 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"DecoyExample/Preview Content\"";
-				DEVELOPMENT_TEAM = 82DGSFCWSX;
+				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_TEAM = YUPY2NAKCU;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -367,8 +375,8 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"DecoyExample/Preview Content\"";
-				DEVELOPMENT_TEAM = 82DGSFCWSX;
+				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_TEAM = YUPY2NAKCU;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -463,8 +471,9 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		A3762FF52D5E58660054EC3D /* Decoy */ = {
+		81B174EB2D5F6BB900518C53 /* Decoy */ = {
 			isa = XCSwiftPackageProductDependency;
+			package = A3762FF42D5E58660054EC3D /* XCLocalSwiftPackageReference "../../../Decoy" */;
 			productName = Decoy;
 		};
 		A3762FF72D5E58660054EC3D /* DecoyXCUI */ = {

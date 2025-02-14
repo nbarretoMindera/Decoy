@@ -12,15 +12,12 @@ Using Decoy, you can:
 
 ## 🧱 And how do I implement it?
 
-The `Decoy` package contains two targets: `Decoy` and `DecoyXCUI`, which are added as dependencies of your `App` and its `AppUITests`
-targets respectively. They're only a few kilobytes in size and will have no major impact on the size of your release
-binary in the App Store. Decoy works best when your app uses a shared instance of `URLSession`, as in this case,
-you only need `import Decoy` once. To get up and running:
+The `Decoy` package contains two targets: `Decoy` and `DecoyXCUI`, which are added as dependencies of your `App` and its `AppUITests` targets respectively. They're only a few kilobytes in size and will have no major impact on the size of your release binary in the App Store. Decoy works best when your app uses a shared instance of `URLSession`, as in this case, you only need `import Decoy` once. To get up and running:
 
 ### In the project:
 * Add the Decoy package as a depedency.
-* Choose the `Decoy` target as a dependency for your app.
-* Choose the `DecoyXCUI` target as a dependency for your UI test target.
+* Choose the `Decoy` target as a dependency for your **app** target.
+* Choose the `DecoyXCUI` target as a dependency for your **UI test** target.
 
 ### In the app:
 * In your app, set up Decoy as soon as your app launches:

@@ -48,7 +48,7 @@ final class DecoyTests: XCTestCase {
   }
 
   func test_setUp_shouldLoadJSON_whenURLDoesContainJSON() {
-    let url = Bundle.module.url(forResource: "LoaderTests", withExtension: "json")
+    let url = Bundle(for: DecoyTests.self).url(forResource: "LoaderTests", withExtension: "json")
     let dir = url?.deletingLastPathComponent()
 
     let processInfo = MockProcessInfo()

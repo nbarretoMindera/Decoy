@@ -5,11 +5,7 @@ import SwiftUI
 struct DecoyExampleApp: App {
   var body: some Scene {
     WindowGroup {
-      ContentView(session: session)
+      ContentView(api: APIClient(session: Session(mocking: .shared)))
     }
-  }
-
-  var session: URLSession {
-    Session()
   }
 }

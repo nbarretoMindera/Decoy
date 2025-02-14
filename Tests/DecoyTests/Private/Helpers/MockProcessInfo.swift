@@ -1,7 +1,7 @@
 import Foundation
 import Decoy
 
-class MockProcessInfo: ProcessInfo {
+class MockProcessInfo: ProcessInfo, @unchecked Sendable {
   var mockedIsRunningXCUI = false
   var mockedEnvironment: [String: String]?
 

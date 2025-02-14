@@ -1,0 +1,24 @@
+{
+  "configurations" : [
+    {
+      "id" : "D80AD815-7853-44EF-B747-9FCC4734EB98",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "DecoyTests",
+        "name" : "DecoyTests"
+      }
+    }
+  ],
+  "version" : 1
+}

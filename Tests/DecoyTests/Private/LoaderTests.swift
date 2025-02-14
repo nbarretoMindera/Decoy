@@ -22,7 +22,7 @@ final class LoaderTests: XCTestCase {
   }
 
   func test_loadJSON_shouldReturnNil_whenURLContainsNonJSONData() {
-    guard let url = Bundle.module.url(forResource: "BadJSONTests", withExtension: "json") else {
+    guard let url = Bundle(for: DecoyTests.self).url(forResource: "BadJSONTests", withExtension: "json") else {
       return XCTFail(#function)
     }
 
@@ -30,7 +30,7 @@ final class LoaderTests: XCTestCase {
   }
 
   func test_loadJSON_shouldReturnParsedData() {
-    guard let url = Bundle.module.url(forResource: "LoaderTests", withExtension: "json") else {
+    guard let url = Bundle(for: DecoyTests.self).url(forResource: "LoaderTests", withExtension: "json") else {
       return XCTFail(#function)
     }
 
@@ -45,7 +45,7 @@ final class LoaderTests: XCTestCase {
   }
 
   func test_loadJSON_shouldNotParse_whenDictionaryHasNoURL() {
-    guard let url = Bundle.module.url(forResource: "NoURLTest", withExtension: "json") else {
+    guard let url = Bundle(for: DecoyTests.self).url(forResource: "NoURLTest", withExtension: "json") else {
       return XCTFail(#function)
     }
 
@@ -57,7 +57,7 @@ final class LoaderTests: XCTestCase {
   }
 
   func test_loadJSON_shouldNotParse_whenDictionaryHasURLWhichDoesNotParseIntoNSURL() {
-    guard let url = Bundle.module.url(forResource: "BadURLTest", withExtension: "json") else {
+    guard let url = Bundle(for: DecoyTests.self).url(forResource: "BadURLTest", withExtension: "json") else {
       return XCTFail(#function)
     }
 
@@ -69,7 +69,7 @@ final class LoaderTests: XCTestCase {
   }
 
   func test_loadJSON_shouldNotParse_whenDictionaryHasNoMock() {
-    guard let url = Bundle.module.url(forResource: "NoMockTest", withExtension: "json") else {
+    guard let url = Bundle(for: DecoyTests.self).url(forResource: "NoMockTest", withExtension: "json") else {
       return XCTFail(#function)
     }
 

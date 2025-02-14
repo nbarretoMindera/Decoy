@@ -1,24 +1,20 @@
-//
-//  ContentView.swift
-//  DecoyExample
-//
-//  Created by Luke Charman on 13/02/2025.
-//
-
+import Decoy
 import SwiftUI
 
 struct ContentView: View {
-    var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
-        }
-        .padding()
+  let api: APIClient
+
+  @State var fruit: Fruit?
+
+  var body: some View {
+    VStack(spacing: 16) {
+      Text(fruit?.name ?? "...")
+      Button("Fetch Apple") { api.fetchApple { fruit = $0 } }
+      Button("Fetch Banana") { api.fetchBanana { fruit = $0 } }
     }
+  }
 }
 
 #Preview {
-    ContentView()
+  ContentView(api: APIClient(session: Session()))
 }
