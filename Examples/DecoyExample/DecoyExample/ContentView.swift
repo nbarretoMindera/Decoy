@@ -1,4 +1,3 @@
-import Decoy
 import SwiftUI
 
 struct ContentView: View {
@@ -18,8 +17,4 @@ struct ContentView: View {
     }
     .padding()
   }
-}
-
-#Preview {
-  ContentView(api: APIClient(session: Session()))
 }

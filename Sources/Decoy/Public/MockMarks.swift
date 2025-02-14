@@ -37,8 +37,13 @@ public class Decoy {
     }
   }
 
-  /// Used to ascertain whether or not Decoy is currently running within the context of a `DecoyUITestCase`.
+  /// Used to ascertain whether or not Decoy is currently running within the context of a `DecoyTestCase`.
   public func isXCUI(processInfo: ProcessInfo = .processInfo) -> Bool {
+    processInfo.environment[Constants.isXCUI] == String(true)
+  }
+
+  /// Used to ascertain whether or not Decoy is currently running within the context of a `DecoyTestCase`.
+  public static func isXCUI(processInfo: ProcessInfo = .processInfo) -> Bool {
     processInfo.environment[Constants.isXCUI] == String(true)
   }
 

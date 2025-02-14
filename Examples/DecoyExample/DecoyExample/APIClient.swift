@@ -1,5 +1,6 @@
 import Foundation
 
+/// Note: this `APIClient` has no knowledge of Decoy, and nor should it.
 struct APIClient {
   private let session: URLSession
   private let fruitEndpoint = "https://fruityvice.com/api/fruit/"
