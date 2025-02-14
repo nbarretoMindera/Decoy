@@ -22,18 +22,12 @@ final class LoaderTests: XCTestCase {
   }
 
   func test_loadJSON_shouldReturnNil_whenURLContainsNonJSONData() {
-    guard let url = Bundle(for: DecoyTests.self).url(forResource: "BadJSONTests", withExtension: "json") else {
-      return XCTFail(#function)
-    }
-
+    guard let url = Bundle.testing("BadJSONTests.json") else { return XCTFail(#function) }
     XCTAssertNil(loader.loadJSON(from: url))
   }
 
   func test_loadJSON_shouldReturnParsedData() {
-    guard let url = Bundle(for: DecoyTests.self).url(forResource: "LoaderTests", withExtension: "json") else {
-      return XCTFail(#function)
-    }
-
+    guard let url = Bundle.testing("LoaderTests.json") else { return XCTFail(#function) }
     let result = loader.loadJSON(from: url)
     XCTAssertEqual(result![0].url.absoluteString, "https://testing-some-json")
 
@@ -45,38 +39,20 @@ final class LoaderTests: XCTestCase {
   }
 
   func test_loadJSON_shouldNotParse_whenDictionaryHasNoURL() {
-    guard let url = Bundle(for: DecoyTests.self).url(forResource: "NoURLTest", withExtension: "json") else {
-      return XCTFail(#function)
-    }
-
-    guard let result = loader.loadJSON(from: url) else {
-      return XCTFail(#function)
-    }
-
+    guard let url = Bundle.testing("NoURLTest.json") else { return XCTFail(#function) }
+    guard let result = loader.loadJSON(from: url) else { return XCTFail(#function) }
     XCTAssert(result.isEmpty)
   }
 
   func test_loadJSON_shouldNotParse_whenDictionaryHasURLWhichDoesNotParseIntoNSURL() {
-    guard let url = Bundle(for: DecoyTests.self).url(forResource: "BadURLTest", withExtension: "json") else {
-      return XCTFail(#function)
-    }
-
-    guard let result = loader.loadJSON(from: url) else {
-      return XCTFail(#function)
-    }
-
+    guard let url = Bundle.testing("BadURLTest.json") else { return XCTFail(#function) }
+    guard let result = loader.loadJSON(from: url) else { return XCTFail(#function) }
     XCTAssert(result.isEmpty)
   }
 
   func test_loadJSON_shouldNotParse_whenDictionaryHasNoMock() {
-    guard let url = Bundle(for: DecoyTests.self).url(forResource: "NoMockTest", withExtension: "json") else {
-      return XCTFail(#function)
-    }
-
-    guard let result = loader.loadJSON(from: url) else {
-      return XCTFail(#function)
-    }
-
+    guard let url = Bundle.testing("NoMockTest.json") else { return XCTFail(#function) }
+    guard let result = loader.loadJSON(from: url) else { return XCTFail(#function) }
     XCTAssert(result.isEmpty)
   }
 }

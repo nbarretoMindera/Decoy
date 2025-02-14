@@ -23,7 +23,10 @@ let package = Package(
     ),
     .testTarget(
       name: "DecoyTests",
-      dependencies: ["Decoy"]
+      dependencies: ["Decoy"],
+      resources: [
+        .process("Resources")
+      ]
     ),
   ]
 )

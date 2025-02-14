@@ -48,13 +48,12 @@ final class DecoyTests: XCTestCase {
   }
 
   func test_setUp_shouldLoadJSON_whenURLDoesContainJSON() {
-    let url = Bundle(for: DecoyTests.self).url(forResource: "LoaderTests", withExtension: "json")
-    let dir = url?.deletingLastPathComponent()
+    let url = Bundle.testing()
 
     let processInfo = MockProcessInfo()
     processInfo.mockedEnvironment = [
       Decoy.Constants.isXCUI: String(true),
-      Decoy.Constants.mockDirectory: dir!.absoluteString,
+      Decoy.Constants.mockDirectory: url!.absoluteString,
       Decoy.Constants.mockFilename: "LoaderTests.json"
     ]
 
