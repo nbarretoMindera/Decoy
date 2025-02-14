@@ -18,4 +18,11 @@ final class DecoyExampleUITests: DecoyTestCase {
     app.buttons["Fetch Banana"].firstMatch.tap()
     XCTAssert(app.staticTexts["Banana"].waitForExistence(timeout: 5))
   }
+
+  func test_example_twoCallsToDifferentEndpoints() {
+    app.buttons["Fetch Apple"].firstMatch.tap()
+    XCTAssert(app.staticTexts["Apple"].waitForExistence(timeout: 5))
+    app.buttons["Fetch Cat Fact"].firstMatch.tap()
+    XCTAssert(app.staticTexts["..."].waitForNonExistence(timeout: 5))
+  }
 }

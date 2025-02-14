@@ -1,0 +1,32 @@
+[
+  {
+    "url" : "https:\/\/catfact.ninja\/fact",
+    "mock" : {
+      "json" : {
+        "fact" : "Owning a cat is actually proven to be beneficial for your health.",
+        "length" : 65
+      },
+      "responseCode" : 200
+    }
+  },
+  {
+    "mock" : {
+      "json" : {
+        "nutritions" : {
+          "sugar" : 10.300000000000001,
+          "protein" : 0.29999999999999999,
+          "fat" : 0.40000000000000002,
+          "carbohydrates" : 11.4,
+          "calories" : 52
+        },
+        "id" : 6,
+        "order" : "Rosales",
+        "name" : "Apple",
+        "genus" : "Malus",
+        "family" : "Rosaceae"
+      },
+      "responseCode" : 200
+    },
+    "url" : "https:\/\/fruityvice.com\/api\/fruit\/apple"
+  }
+]
