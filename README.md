@@ -70,7 +70,35 @@ Yes! One of Decoy' handier features is the ability to record real responses prov
 * Now, re-run your tests.
 * Decoy will detect that a mock exists with the given test name, and will pass it on to your app.
 
-## 🔨 How does it workk?
+## 🎨 Using Decoy with a Custom URLSession
+
+Decoy intercepts network requests by injecting a custom `URLProtocol` (`DecoyURLProtocol`) into your session’s configuration. If you already have a custom URLSession, you can integrate Decoy without significant changes to your existing setup.
+
+### Step 1: Configure Your URLSession to Use Decoy
+
+Decoy provides a helper property, `Decoy.urlSession`, which returns a `URLSession` preconfigured with `DecoyURLProtocol`. This ensures that all requests are intercepted by Decoy. For example, if you have a factory function like this:
+
+```
+func makeURLSession(utilities: Utilities, delegate: URLSessionDelegate?) -> URLSession {
+  let configuration = URLSessionConfiguration.default
+  return URLSession(configuration: configuration, delegate: delegate, delegateQueue: nil)
+}
+```
+
+You can update it to use Decoy’s configuration:
+
+```
+func makeURLSession(utilities: Utilities, delegate: URLSessionDelegate?) -> URLSession {
+  let configuration = URLSessionConfiguration.default
+  
+  // Prepend DecoyURLProtocol so that it intercepts requests.
+  configuration.protocolClasses = [DecoyURLProtocol.self] + (configuration.protocolClasses ?? [])
+  
+  return URLSession(configuration: configuration, delegate: delegate, delegateQueue: nil)
+}
+```
+
+## 🔨 How does it work?
 
 Decoy leverages a custom URLProtocol (`DecoyURLProtocol`) to intercept all network requests made by a URLSession. The protocol:
 * Checks for a queued mock in Decoy’s internal queue:
