@@ -1,6 +1,5 @@
 <div align="center">
-  <img src="https://github.com/user-attachments/assets/9515d75a-9cef-4e8e-9006-23a18df7a2b4" width="300" alt="Decoy Logo">
-  <br><i>Quack. Mock.</i>
+  <img src="https://github.com/user-attachments/assets/47cf7f03-053b-4762-bb67-2831944cfc0d" width="350" alt="Decoy Logo">
 </div>
 
 # Decoy
