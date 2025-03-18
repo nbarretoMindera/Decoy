@@ -6,7 +6,6 @@ import Foundation
 /// Implementations of this protocol are responsible for writing serialized JSON recordings
 /// to a file system location determined by environment variables.
 protocol WriterInterface {
-
   /// Writes an array of recordings to a file.
   ///
   /// - Parameter recordings: A collection of dictionaries representing recorded data.
@@ -27,7 +26,6 @@ enum WriterError: Error {
 /// The `Writer` class retrieves file path details from environment variables and writes JSON data
 /// to the appropriate location. It ensures that the target directory exists before writing.
 class Writer: WriterInterface {
-
   /// The `ProcessInfo` instance used to retrieve environment variables.
   private let processInfo: ProcessInfo
   /// The `FileManager` instance used to manage file operations.
@@ -81,7 +79,6 @@ class Writer: WriterInterface {
 // MARK: - Private Extensions
 
 private extension Writer {
-
   /// Retrieves the file path for storing recorded data.
   ///
   /// - Returns: The directory path specified in the `Decoy.Constants.mockDirectory` environment variable.

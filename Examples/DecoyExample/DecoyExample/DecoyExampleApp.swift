@@ -28,9 +28,8 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil
   ) -> Bool {
-    /// As early as possible in your app launch process, call `Decoy.setUp()`, optionally passing in a `URLSession` instance.
-    /// This will set up Decoy to begin intercepting traffic to that session. If you don't provide a session, the default
-    /// `URLSession.shared` will be used.
+    /// As early as possible in your app launch process, call `Decoy.setUp()`. This will set up Decoy to begin intercepting
+    /// traffic to that session.
     Decoy.setUp()
     return true
   }

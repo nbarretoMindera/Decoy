@@ -1,4 +1,3 @@
-import Decoy
 import DecoyXCUI
 import XCTest
 
@@ -14,6 +13,7 @@ final class DecoyExampleUITests: DecoyTestCase {
   }
 
   /// The tests themselves are stock `XCUITest`, and no other changes are needed.
+
   func test_example_oneCallToOneEndpoint_usingClosureSyntax() {
     app.buttons["Fetch Apple (Closure)"].firstMatch.tap()
     XCTAssert(app.staticTexts["Apple"].waitForExistence(timeout: 5))

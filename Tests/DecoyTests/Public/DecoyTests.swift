@@ -28,7 +28,7 @@ final class DecoyTests: XCTestCase {
   func test_setUp_shouldNotLoadJSON_whenXCUIIsNotRunning() {
     let processInfo = MockProcessInfo()
     processInfo.mockedIsRunningXCUI = false
-    Decoy.setUp(session: Session(), processInfo: processInfo)
+    Decoy.setUp(processInfo: processInfo)
     XCTAssert(Decoy.queue.queuedResponses.isEmpty)
   }
 
@@ -38,7 +38,7 @@ final class DecoyTests: XCTestCase {
       Decoy.Constants.isXCUI: String(true),
       Decoy.Constants.mockFilename: "B"
     ]
-    Decoy.setUp(session: Session(), processInfo: processInfo)
+    Decoy.setUp(processInfo: processInfo)
     XCTAssert(Decoy.queue.queuedResponses.isEmpty)
   }
 
@@ -48,7 +48,7 @@ final class DecoyTests: XCTestCase {
       Decoy.Constants.isXCUI: String(true),
       Decoy.Constants.mockDirectory: "B"
     ]
-    Decoy.setUp(session: Session(), processInfo: processInfo)
+    Decoy.setUp(processInfo: processInfo)
     XCTAssert(Decoy.queue.queuedResponses.isEmpty)
   }
 
@@ -63,25 +63,8 @@ final class DecoyTests: XCTestCase {
       Decoy.Constants.mockFilename: "LoaderTest.json"
     ]
 
-    Decoy.setUp(session: Session(), processInfo: processInfo)
+    Decoy.setUp(processInfo: processInfo)
     XCTAssertFalse(Decoy.queue.queuedResponses.isEmpty)
-  }
-
-  func test_dispatchNextQueuedResponse_shouldCallCompletion() {
-    guard let data = try? JSONSerialization.data(withJSONObject: ["A": "B"]) else { return XCTFail(#function) }
-    let response = Stub.Response(data: data, urlResponse: nil, error: nil)
-    let Stub = Stub(url: url, response: response)
-
-    Decoy.queue.queue(Stub: Stub)
-    _ = Decoy.dispatchNextQueuedResponse(for: url) { data, _, _ in
-      guard let json = try? JSONSerialization.jsonObject(with: data!, options: []) as? [String: Any] else {
-        return XCTFail(#function)
-      }
-
-      guard let result = json["A"] as? String else { return XCTFail(#function) }
-
-      XCTAssertEqual(result, "B")
-    }
   }
 }
 

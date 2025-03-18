@@ -7,7 +7,6 @@ import Decoy
 /// It ensures that UI tests can access the correct mock directory and filename, and configures the app's
 /// launch environment accordingly.
 open class DecoyTestCase: XCTestCase {
-
   /// The instance of `XCUIApplication` used to interact with the UI.
   public var app: XCUIApplication!
 
@@ -77,7 +76,6 @@ open class DecoyTestCase: XCTestCase {
 // MARK: - Public Extensions
 
 public extension DecoyTestCase {
-
   /// Determines the mock filename based on the test case name.
   ///
   /// - Returns: A string representing the mock filename.

@@ -2,7 +2,6 @@ import Foundation
 
 /// A protocol defining a loader responsible for reading and decoding mocked responses from a JSON file.
 protocol LoaderInterface {
-
   /// Loads a JSON file from the specified URL and decodes it into an array of `Stub` objects.
   ///
   /// - Parameter url: The URL pointing to the JSON file containing ordered mock responses.
@@ -19,7 +18,6 @@ private typealias StubArray = [StubDictionary]
 /// This struct reads a JSON file from disk, decodes its contents, and converts it into an array of
 /// `Stub` objects, which can be used for network request mocking.
 struct Loader: LoaderInterface {
-
   /// Constants used to parse JSON keys when decoding mocked responses.
   struct Constants {
     /// The key for retrieving the URL from the JSON.
@@ -55,7 +53,9 @@ struct Loader: LoaderInterface {
 
     return json.compactMap { stub(from: $0) }
   }
+}
 
+private extension Loader {
   /// Converts a JSON dictionary into a `Stub` instance.
   ///
   /// - Parameter json: A dictionary representing a single mocked response.
@@ -64,7 +64,7 @@ struct Loader: LoaderInterface {
   /// This method extracts:
   /// - The `url` of the request.
   /// - The mock response details (`data`, `urlResponse`, `error`).
-  private func stub(from json: [String: Any]) -> Stub? {
+  func stub(from json: [String: Any]) -> Stub? {
     guard let urlString = json[Constants.url] as? String else { return nil }
     guard let url = URL(string: urlString) else { return nil }
     guard let mock = json[Constants.mock] as? StubDictionary else { return nil }
@@ -82,7 +82,7 @@ struct Loader: LoaderInterface {
   /// - Returns: The response data as `Data` if available, otherwise `nil`.
   ///
   /// This method attempts to serialize the `"json"` key from the mock dictionary into a `Data` object.
-  private func data(from mock: StubDictionary) -> Data? {
+  func data(from mock: StubDictionary) -> Data? {
     guard let json = mock[Constants.json] else { return nil }
     return try? JSONSerialization.data(withJSONObject: json)
   }
@@ -98,7 +98,7 @@ struct Loader: LoaderInterface {
   /// - The `statusCode` (default: `200` if not specified).
   /// - The `httpVersion` (if available).
   /// - The `headerFields` dictionary (if available).
-  private func urlResponse(to url: URL, from mock: StubDictionary) -> HTTPURLResponse? {
+  func urlResponse(to url: URL, from mock: StubDictionary) -> HTTPURLResponse? {
     HTTPURLResponse(
       url: url,
       statusCode: mock[Constants.statusCode] as? Int ?? 200,
@@ -113,7 +113,7 @@ struct Loader: LoaderInterface {
   /// - Returns: A dictionary representing the error, or `nil` if no error is specified.
   ///
   /// **Note:** This method currently returns `nil`, but can be expanded to handle structured error responses.
-  private func error(from mock: StubDictionary) -> [String: Any]? {
-    return nil
+  func error(from mock: StubDictionary) -> [String: Any]? {
+    nil
   }
 }

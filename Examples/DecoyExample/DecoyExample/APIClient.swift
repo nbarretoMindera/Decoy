@@ -1,6 +1,7 @@
 import Foundation
 
-/// An API client that fetches fruit and cat facts. It has no knowledge of Decoy.
+/// An API client that fetches fruit and cat facts. It has no knowledge of Decoy and provides
+/// methods to fetch using closure and async syntaxes to prove that these both work.
 struct APIClient {
   private let session: URLSession
   private let fruitEndpoint = "https://fruityvice.com/api/fruit/"

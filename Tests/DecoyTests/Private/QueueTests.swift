@@ -56,30 +56,23 @@ final class QueueTests: XCTestCase {
     XCTAssertEqual(savedError["code"] as? Int, error["code"] as? Int)
   }
 
-  func test_dispatchNextQueuedResponse_shouldReturnFalse_whenURLHasNoQueuedResponses() {
-    XCTAssertFalse(queue.dispatchNextQueuedResponse(for: url, to: { _, _, _ in }))
+  func test_dispatchNextQueuedResponse_shouldReturnNil_whenURLHasNoQueuedResponses() {
+    XCTAssertNil(queue.nextQueuedResponse(for: url))
   }
 
-  func test_dispatchNextQueuedResponse_shouldReturnTrue_whenURLHasQueuedResponses() {
+  func test_dispatchNextQueuedResponse_shouldReturnNonNil_whenURLHasQueuedResponses() {
     queue.queue(Stub: Stub(url: url, response: emptyResponse))
-    XCTAssertTrue(queue.dispatchNextQueuedResponse(for: url, to: { _, _, _ in }))
+    XCTAssertNotNil(queue.nextQueuedResponse(for: url))
   }
 
   func test_dispatchNextQueuedResponse_shouldReturnTrue_multipleTimes_thenFalse() {
     queue.queue(Stub: Stub(url: url, response: emptyResponse))
     queue.queue(Stub: Stub(url: url, response: emptyResponse))
     queue.queue(Stub: Stub(url: url, response: emptyResponse))
-    XCTAssertTrue(queue.dispatchNextQueuedResponse(for: url, to: { _, _, _ in }))
-    XCTAssertTrue(queue.dispatchNextQueuedResponse(for: url, to: { _, _, _ in }))
-    XCTAssertTrue(queue.dispatchNextQueuedResponse(for: url, to: { _, _, _ in }))
-    XCTAssertFalse(queue.dispatchNextQueuedResponse(for: url, to: { _, _, _ in }))
-  }
-
-  func test_dispatchNextQueuedResponse_shouldCallCompletion() {
-    let exp = expectation(description: #function)
-    queue.queue(Stub: Stub(url: url, response: emptyResponse))
-    _ = queue.dispatchNextQueuedResponse(for: url) { _ in exp.fulfill() }
-    waitForExpectations(timeout: 0.01)
+    XCTAssertNotNil(queue.nextQueuedResponse(for: url))
+    XCTAssertNotNil(queue.nextQueuedResponse(for: url))
+    XCTAssertNotNil(queue.nextQueuedResponse(for: url))
+    XCTAssertNil(queue.nextQueuedResponse(for: url))
   }
 
   var url: URL {
