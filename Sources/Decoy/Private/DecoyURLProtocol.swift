@@ -48,6 +48,8 @@ class DecoyURLProtocol: URLProtocol {
       sendForceOfflineError(for: url)
     }
   }
+
+  override func stopLoading() {}
 }
 
 private extension DecoyURLProtocol {
