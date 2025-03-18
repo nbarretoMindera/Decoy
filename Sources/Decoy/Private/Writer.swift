@@ -1,3 +1,4 @@
+import Compression
 import Foundation
 
 protocol WriterInterface {
@@ -7,6 +8,7 @@ protocol WriterInterface {
 enum WriterError: Error {
   case filePathNotFound
   case couldNotSerializeJSON
+  case compressionFailed
 }
 
 class Writer: WriterInterface {
@@ -20,15 +22,22 @@ class Writer: WriterInterface {
 
   func write(recordings: [[String: Any]]) throws {
     guard let path, let file else { throw WriterError.filePathNotFound }
-    guard let data = try? JSONSerialization.data(withJSONObject: recordings, options: .prettyPrinted) else {
+    guard let jsonData = try? JSONSerialization.data(withJSONObject: recordings) else {
       throw WriterError.couldNotSerializeJSON
     }
 
-    var url = URL(safePath: path)
+    guard let compressedData = try? (jsonData as NSData).compressed(using: .lzfse) else {
+      throw WriterError.compressionFailed
+    }
+
+    var url = URL(fileURLWithPath: path, isDirectory: true)
     try fileManager.createDirectory(at: url, withIntermediateDirectories: true)
 
-    url.safeAppend(path: file)
-    try data.write(to: url)
+    url.appendPathComponent(file)
+    url.deletePathExtension()
+    url.appendPathExtension("decoy")
+
+    try compressedData.write(to: url)
   }
 }
 

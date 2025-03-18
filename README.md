@@ -2,10 +2,10 @@
 
 ## ❓ So, what is Decoy?
 
-Decoy is a Swift package used to easily create local, mocked responses to network calls made
-via `URLSession`. These are managed entirely within Xcode, and no HTTP server or other intermediary is required.
-Using Decoy, you can:
+Decoy is a Swift package used to easily create local, mocked responses to network calls made via `URLSession`. These are managed entirely within Xcode, and no HTTP server or other intermediary is required.
 
+Using Decoy, you can:
+* Use your app in production to create a script of mocks.
 * Queue specific mocked JSON responses to requests to specific endpoint URLs.
 * Return those mocked responses in the order they were queued to create a flow.
 * Use `URLSession` as normal in your app's features, meaning Decoy is not exposed to your features internally.
@@ -42,14 +42,9 @@ The `Decoy` package contains two targets: `Decoy` and `DecoyXCUI`, which are add
 
 ## 🔴 Can I record with it?
 
-Yes! One of Decoy' handier features is the ability to record real responses provided by your APIs, and then play
-them back when running the tests. You can think of this similarly to how recording works in popular snapshot testing
-libraries, where you'll record a "known good" state of your API, then not hit the real network when running your tests,
-allowing your UI tests to be exactly that, rather than full integration tests.
+Yes! One of Decoy' handier features is the ability to record real responses provided by your APIs, and then play them back when running the tests. You can think of this similarly to how recording works in popular snapshot testing libraries, where you'll record a "known good" state of your API, then not hit the real network when running your tests, allowing your UI tests to be exactly that, rather than full integration tests.
 
-*Note: One gap here that I hope to plug in future updates to Decoy is the ability to verify that the recorded
-responses are still in line with those provided by the real backend, and some way to notify you if your backend has
-changed and you're running tests against mocks which do not reflect the real API.*
+*Note: One gap here that I hope to plug in future updates to Decoy is the ability to verify that the recorded responses are still in line with those provided by the real backend, and some way to notify you if your backend has changed and you're running tests against mocks which do not reflect the real API.*
 
 ### How to record:
 * First, write your UI test using your real API. Ensure that it's reliable and passes.
@@ -76,15 +71,11 @@ changed and you're running tests against mocks which do not reflect the real API
 
 ## 👩‍💻 Can I try it for myself?
 
-There's a `DecoyExample` in this repository. You can build it and take a look, it's super simple. It uses a
-free "random word" API as an example and its UI test target shows how to mock single or multiple calls to single or
-multiple endpoints with Decoy.
+There's a `DecoyExample` in this repository. You can build it and take a look, it's super simple. It uses a couple of free public APIs as examples and its UI test target shows how to mock single or multiple calls to single or multiple endpoints with Decoy.
 
 ## 💡 What are your future plans for Decoy?
 
-It's still early days, and I'm excited to see how we can continue to grow Decoy into an even more useful UI
-test mocking library. It's a specific use case that I don't really want to deviate from too much, I'm thinking of
-these tests as snapshots with a flow, and separate from integration testing (which is still crucially important).
+It's still early days, and I'm excited to see how we can continue to grow Decoy into an even more useful UI test mocking library. It's a specific use case that I don't really want to deviate from too much, I'm thinking of these tests as snapshots with a flow, and separate from integration testing (which is still crucially important).
 
 Some specific things that still need doing / some ideas for the future:
 * Decide on how errors are represented in the JSON and how to mock them usefully.
