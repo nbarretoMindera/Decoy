@@ -11,22 +11,11 @@ struct APIClient {
   }
 
   func fetchApple(completion: @escaping (Fruit?) -> Void) {
-    fetch("apple", completion: completion)
+    fetchFruit("apple", completion: completion)
   }
 
   func fetchBanana(completion: @escaping (Fruit?) -> Void) {
-    fetch("banana", completion: completion)
-  }
-
-  private func fetch(_ string: String, completion: @escaping (Fruit?) -> Void) {
-    guard let url = URL(string: fruitEndpoint.appending(string)) else { return completion(nil) }
-
-    session.dataTask(with: URLRequest(url: url)) { data, response, error in
-      guard let data else { return completion(nil) }
-      let decoder = JSONDecoder()
-      let fruit = try? decoder.decode(Fruit.self, from: data)
-      completion(fruit ?? nil)
-    }.resume()
+    fetchFruit("banana", completion: completion)
   }
 
   func fetchCatFact(completion: @escaping (String?) -> Void) {
@@ -37,6 +26,17 @@ struct APIClient {
       let decoder = JSONDecoder()
       let fact = try? decoder.decode(CatFact.self, from: data)
       completion(fact?.fact ?? nil)
+    }.resume()
+  }
+
+  func fetchFruit(_ string: String, completion: @escaping (Fruit?) -> Void) {
+    guard let url = URL(string: fruitEndpoint.appending(string)) else { return completion(nil) }
+
+    session.dataTask(with: URLRequest(url: url)) { data, response, error in
+      guard let data else { return completion(nil) }
+      let decoder = JSONDecoder()
+      let fruit = try? decoder.decode(Fruit.self, from: data)
+      completion(fruit ?? nil)
     }.resume()
   }
 }

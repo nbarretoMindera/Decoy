@@ -9,7 +9,7 @@ final class SessionTests: XCTestCase {
   override func setUp() {
     super.setUp()
     mockURLSession = MockSession()
-    Decoy.shared.recorder.recordings.removeAll()
+    Decoy.recorder.recordings.removeAll()
     DecoySession = Session(mocking: mockURLSession)
   }
 
@@ -58,7 +58,7 @@ final class SessionTests: XCTestCase {
   func test_dataTaskWithURLRequest_shouldNotRecordWhenRecordingIsDisabled() {
     _ = DecoySession.dataTask(with: url) { _, _, _ in }
     XCTAssert(mockURLSession.didCallDataTaskWithURL)
-    XCTAssert(Decoy.shared.recorder.recordings.isEmpty)
+    XCTAssert(Decoy.recorder.recordings.isEmpty)
   }
 
   func test_dataTaskWithURLRequest_shouldRecordWhenRecordingIsEnabled() {
@@ -103,7 +103,7 @@ private class MockSession: URLSession {
   ) -> URLSessionDataTask {
     didCallDataTaskWithURLRequest = true
     let task = URLSession.shared.dataTask(with: request, completionHandler: completionHandler)
-    return MockDataTask(mocking: task, completionHandler: completionHandler)
+    return MockDataTask(mocking: task, mode: .liveIfUnmocked, completionHandler: completionHandler)
   }
 
   override func dataTask(
@@ -112,13 +112,13 @@ private class MockSession: URLSession {
   ) -> URLSessionDataTask {
     didCallDataTaskWithURL = true
     let task = URLSession.shared.dataTask(with: url, completionHandler: completionHandler)
-    return MockDataTask(mocking: task, completionHandler: completionHandler)
+    return MockDataTask(mocking: task, mode: .liveIfUnmocked, completionHandler: completionHandler)
   }
 }
 
 private class MockDataTask: DataTask {
-  override init(mocking task: URLSessionDataTask, completionHandler: @escaping DataTask.CompletionHandler) {
-    super.init(mocking: task, completionHandler: completionHandler)
+  override init(mocking task: URLSessionDataTask, mode: Decoy.Mode, completionHandler: @escaping DataTask.CompletionHandler) {
+    super.init(mocking: task, mode: mode, completionHandler: completionHandler)
     completionHandler(("Test".data(using: .utf16)!, nil, nil))
   }
 }

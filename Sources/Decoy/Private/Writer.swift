@@ -26,18 +26,14 @@ class Writer: WriterInterface {
       throw WriterError.couldNotSerializeJSON
     }
 
-    guard let compressedData = try? (jsonData as NSData).compressed(using: .lzfse) else {
-      throw WriterError.compressionFailed
-    }
-
     var url = URL(fileURLWithPath: path, isDirectory: true)
     try fileManager.createDirectory(at: url, withIntermediateDirectories: true)
 
     url.appendPathComponent(file)
     url.deletePathExtension()
-    url.appendPathExtension("decoy")
+    url.appendPathExtension("json")
 
-    try compressedData.write(to: url)
+    try jsonData.write(to: url)
   }
 }
 

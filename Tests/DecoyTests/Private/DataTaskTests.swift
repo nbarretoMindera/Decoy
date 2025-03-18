@@ -17,13 +17,13 @@ final class DataTaskTests: XCTestCase {
 
   func test_init_shouldStoreTask() {
     let task = URLSessionDataTask()
-    let DecoyTask = DataTask(mocking: task) { _, _, _ in }
+    let DecoyTask = DataTask(mocking: task, mode: .liveIfUnmocked) { _, _, _ in }
     XCTAssertIdentical(task, DecoyTask.task)
   }
 
   func test_overriddenResume_shouldCallInternalResume() {
     let task = MockURLSessionDataTask()
-    let DecoyTask = DataTask(mocking: task) { _, _, _ in }
+    let DecoyTask = DataTask(mocking: task, mode: .liveIfUnmocked) { _, _, _ in }
     DecoyTask.resume()
     XCTAssert(task.didCallResume)
   }
@@ -32,7 +32,7 @@ final class DataTaskTests: XCTestCase {
     mockedProcessInfo.mockedIsRunningXCUI = true
 
     let task = MockURLSessionDataTask()
-    let DecoyTask = DataTask(mocking: task) { _, _, _ in }
+    let DecoyTask = DataTask(mocking: task, mode: .liveIfUnmocked) { _, _, _ in }
     DecoyTask.resume(processInfo: mockedProcessInfo)
     XCTAssert(task.didCallResume)
   }
@@ -41,7 +41,7 @@ final class DataTaskTests: XCTestCase {
     mockedProcessInfo.mockedIsRunningXCUI = false
 
     let task = MockURLSessionDataTask()
-    let DecoyTask = DataTask(mocking: task) { _, _, _ in }
+    let DecoyTask = DataTask(mocking: task, mode: .liveIfUnmocked) { _, _, _ in }
     DecoyTask.resume(processInfo: mockedProcessInfo)
     XCTAssert(task.didCallResume)
   }
@@ -52,7 +52,7 @@ final class DataTaskTests: XCTestCase {
     let task = MockURLSessionDataTask()
     task.mockedCurrentRequest = URLRequest(url: URL(string: "http://no-mocks.for.me")!)
 
-    let DecoyTask = DataTask(mocking: task) { _, _, _ in }
+    let DecoyTask = DataTask(mocking: task, mode: .liveIfUnmocked) { _, _, _ in }
     DecoyTask.resume(processInfo: mockedProcessInfo)
     XCTAssert(task.didCallResume)
   }
@@ -63,12 +63,12 @@ final class DataTaskTests: XCTestCase {
     let url = URL(string: "A")!
     guard let data = try? JSONSerialization.data(withJSONObject: ["A": "B"]) else { return XCTFail(#function) }
     let response = Stub.Response(data: data, urlResponse: nil, error: nil)
-    Decoy.shared.queue.queue(Stub: Stub(url: URL(string: "A")!, response: response))
+    Decoy.queue.queue(Stub: Stub(url: URL(string: "A")!, response: response))
 
     let task = MockURLSessionDataTask()
     task.mockedCurrentRequest = URLRequest(url: url)
 
-    DataTask(mocking: task) { data, _, _ in
+    DataTask(mocking: task, mode: .liveIfUnmocked) { data, _, _ in
       guard let data = data else {
         return XCTFail(#function)
       }

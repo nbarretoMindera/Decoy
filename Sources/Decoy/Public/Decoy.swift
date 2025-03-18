@@ -42,10 +42,10 @@ public enum Decoy {
   ///   - session: An instance of `Session` initialized with a `URLSession` to be mocked. Defaults to `URLSession.shared`.
   ///   - processInfo: An injectable instance of `ProcessInfo` used to check environment variables.
   public static func setUp(
-    session: SessionInterface = Session(mocking: .shared),
+    session: URLSession = .shared,
     processInfo: ProcessInfo = .processInfo
   ) {
-    self.session = session
+    self.session = Session(mocking: session)
 
     guard Decoy.isXCUI(processInfo: processInfo) else { return }
     guard let modeString = processInfo.environment[Decoy.Constants.mode] else { return }
