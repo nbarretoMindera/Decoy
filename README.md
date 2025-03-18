@@ -2,10 +2,10 @@
 
 ## ❓ So, what is Decoy?
 
-Decoy is a Swift package used to easily create local, mocked responses to network calls made via `URLSession`. These are managed entirely within Xcode, and no HTTP server or other intermediary is required.
+Decoy is a Swift package used to easily create local, mocked responses to network calls made via `URLSession` for XCUI tests. These are managed entirely within Xcode, and no HTTP server or other intermediary is required.
 
 Using Decoy, you can:
-* Use your app in production to create a script of mocks.
+* Use your app in production to automagically create a script of mocks.
 * Queue specific mocked JSON responses to requests to specific endpoint URLs.
 * Return those mocked responses in the order they were queued to create a flow.
 * Use `URLSession` as normal in your app's features, meaning Decoy is not exposed to your features internally.
@@ -22,17 +22,17 @@ The `Decoy` package contains two targets: `Decoy` and `DecoyXCUI`, which are add
 ### In the app:
 * In your app, set up Decoy as soon as your app launches:
   ```
-  Decoy.shared.setUp(session: Session())
+  Decoy.setUp()
   ```
 * This will implicitly mock `URLSession.shared`, but you can pass in your own if you prefer.
-* When you use `URLSession` in your app, use `Decoy.session` instead:
+* When you use `URLSession` in your app, use `Decoy.urlSession` instead:
   ```
-  ViewModel(urlSession: Decoy.shared.session as? URLSession ?? .shared)
+  FooAPIClient(urlSession: Decoy.urlSession ?? .shared)
   ```
 
 ### In the UI test target:
 * In your UI test target, have the test classes inherit from `DecoyUITestCase`.
-* Call the custom `setUp()` method, like so, passing in whether or not you'd like to record.
+* Call the custom `setUp()` method, like so, passing in the test mode you'd like to use.
   ```
   override func setUp() {
     super.setUp(mode: .record)
@@ -44,14 +44,12 @@ The `Decoy` package contains two targets: `Decoy` and `DecoyXCUI`, which are add
 
 Yes! One of Decoy' handier features is the ability to record real responses provided by your APIs, and then play them back when running the tests. You can think of this similarly to how recording works in popular snapshot testing libraries, where you'll record a "known good" state of your API, then not hit the real network when running your tests, allowing your UI tests to be exactly that, rather than full integration tests.
 
-*Note: One gap here that I hope to plug in future updates to Decoy is the ability to verify that the recorded responses are still in line with those provided by the real backend, and some way to notify you if your backend has changed and you're running tests against mocks which do not reflect the real API.*
-
 ### How to record:
 * First, write your UI test using your real API. Ensure that it's reliable and passes.
 * Once you're happy, ask Decoy to record it by changing your `setUp()` method, like so:
   ```
   override func setUp() {
-    super.setUp(recording: true)
+    super.setUp(mode: .record)
   }
   ```
 * Now, run the test again.
@@ -63,7 +61,7 @@ Yes! One of Decoy' handier features is the ability to record real responses prov
 * First, switch recording mode back off:
   ```
   override func setUp() {
-    super.setUp(recording: false)
+    super.setUp(mode: .liveIfUnmocked)
   }
   ```
 * Now, re-run your tests.
