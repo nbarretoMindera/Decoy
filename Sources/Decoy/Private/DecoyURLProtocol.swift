@@ -10,28 +10,28 @@ import Foundation
 /// - If no mock is available in forceOffline mode, an error is returned.
 ///
 /// This URLProtocol enables UI tests to run without requiring the app to be aware of the mocking system.
-class DecoyURLProtocol: URLProtocol {
+public class DecoyURLProtocol: URLProtocol {
   /// Determines whether this protocol can handle the given request.
   ///
   /// - Parameter request: The URLRequest to check.
   /// - Returns: Always returns true so that all requests are intercepted.
-  override class func canInit(with request: URLRequest) -> Bool {
-    return true
+  public override class func canInit(with request: URLRequest) -> Bool {
+    true
   }
 
   /// Returns the canonical version of the request.
   ///
   /// - Parameter request: The original URLRequest.
   /// - Returns: The canonical URLRequest (unchanged).
-  override class func canonicalRequest(for request: URLRequest) -> URLRequest {
-    return request
+  public override class func canonicalRequest(for request: URLRequest) -> URLRequest {
+    request
   }
 
   /// Starts loading the request.
   ///
   /// This method first checks for a queued mock for the request’s URL. If found, it returns the mock.
   /// Otherwise, it delegates behavior based on the current Decoy mode.
-  override func startLoading() {
+  public override func startLoading() {
     guard let url = request.url else {
       client?.urlProtocol(self, didFailWithError: URLError(.badURL))
       return
@@ -49,7 +49,7 @@ class DecoyURLProtocol: URLProtocol {
     }
   }
 
-  override func stopLoading() {}
+  public override func stopLoading() {}
 }
 
 private extension DecoyURLProtocol {
