@@ -4,29 +4,29 @@ import Decoy
 open class DecoyTestCase: XCTestCase {
   public var app: XCUIApplication!
 
-  public func setUp(path: String = #filePath, recording: Bool) {
+  public func setUp(path: String = #filePath, mode: Decoy.Mode = .liveIfUnmocked) {
     super.setUp()
 
-    guard let directory = buildDirectoryForStub(path: path, recording: recording) else {
+    guard let directory = buildDirectoryForStub(path: path, mode: mode) else {
       return XCTFail("Could not generate path to which to write stub.")
     }
 
-    app = appWithConfiguredLaunchEnvironment(directory: directory, recording: recording)
+    app = appWithConfiguredLaunchEnvironment(directory: directory, mode: mode)
   }
 
-  private func buildDirectoryForStub(path: String, recording: Bool) -> String? {
+  private func buildDirectoryForStub(path: String, mode: Decoy.Mode) -> String? {
     var url = URL(string: path)?.deletingLastPathComponent()
     url?.safeAppend(path: Decoy.Constants.mocksFolder)
     return url?.absoluteString
   }
 
-  private func appWithConfiguredLaunchEnvironment(directory: String, recording: Bool) -> XCUIApplication {
+  private func appWithConfiguredLaunchEnvironment(directory: String, mode: Decoy.Mode) -> XCUIApplication {
     let app = XCUIApplication()
 
-    app.launchEnvironment[Decoy.Constants.isRecording] = String(recording)
+    app.launchEnvironment[Decoy.Constants.mode] = mode.rawValue
     app.launchEnvironment[Decoy.Constants.isXCUI] = String(true)
     app.launchEnvironment[Decoy.Constants.mockDirectory] = directory
-    app.launchEnvironment[Decoy.Constants.mockFilename] = "\(mockName).json"
+    app.launchEnvironment[Decoy.Constants.mockFilename] = "\(mockName).decoy"
 
     return app
   }

@@ -3,15 +3,21 @@ import XCTest
 @testable import Decoy
 
 final class RecorderTests: XCTestCase {
-  func test_shouldRecord_shouldReadFromProcessInfo_whenTrue() {
+  func test_shouldRecord_shouldReadFromProcessInfo_whenRecording() {
     let info = MockProcessInfo()
-    info.mockedEnvironment = [Decoy.Constants.isRecording: String(true)]
+    info.mockedEnvironment = [Decoy.Constants.mode: Decoy.Mode.record.rawValue]
     XCTAssert(Recorder(processInfo: info).shouldRecord)
   }
 
-  func test_shouldRecord_shouldReadFromProcessInfo_whenFalse() {
+  func test_shouldRecord_shouldReadFromProcessInfo_whenLiveIfOffline() {
     let info = MockProcessInfo()
-    info.mockedEnvironment = [Decoy.Constants.isRecording: String(false)]
+    info.mockedEnvironment = [Decoy.Constants.mode: Decoy.Mode.liveIfUnmocked.rawValue]
+    XCTAssertFalse(Recorder(processInfo: info).shouldRecord)
+  }
+
+  func test_shouldRecord_shouldReadFromProcessInfo_whenForceOffline() {
+    let info = MockProcessInfo()
+    info.mockedEnvironment = [Decoy.Constants.mode: Decoy.Mode.forceOffline.rawValue]
     XCTAssertFalse(Recorder(processInfo: info).shouldRecord)
   }
 

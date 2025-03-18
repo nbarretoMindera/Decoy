@@ -35,7 +35,7 @@ The `Decoy` package contains two targets: `Decoy` and `DecoyXCUI`, which are add
 * Call the custom `setUp()` method, like so, passing in whether or not you'd like to record.
   ```
   override func setUp() {
-    super.setUp(recording: false)
+    super.setUp(mode: .record)
   }
   ```
 * This will launch your app with the required environment variables to use Decoy.

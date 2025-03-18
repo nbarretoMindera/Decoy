@@ -10,7 +10,6 @@ private typealias StubArray = [StubDictionary]
 
 /// Used to load mocks from JSON files, and decode them.
 struct Loader: LoaderInterface {
-
   struct Constants {
     static let url = "url"
     static let mock = "mock"

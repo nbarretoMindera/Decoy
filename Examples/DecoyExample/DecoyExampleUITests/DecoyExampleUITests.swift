@@ -3,7 +3,7 @@ import XCTest
 
 final class DecoyExampleUITests: DecoyTestCase {
   override func setUp() {
-    super.setUp(recording: false)
+    super.setUp(mode: .record)
     app.launch()
   }
 

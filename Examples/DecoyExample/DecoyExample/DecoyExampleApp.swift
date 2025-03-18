@@ -3,20 +3,25 @@ import SwiftUI
 
 @main
 struct DecoyExampleApp: App {
+  @UIApplicationDelegateAdaptor var appDelegate: AppDelegate
+
   var body: some Scene {
     WindowGroup {
-      /// Here, the APIClient expects a `URLSession`.
-      /// Decoy can tell us if we're UI testing or not.
-      /// If we are, we inject a Decoy `Session` mocking the `.shared` singleton instance.
-      /// If not, we pass in the standard singleton, meaning in production code, Decoy is not used.
-      if Decoy.isXCUI() {
-        ContentView(api: APIClient(session: Decoy.shared.session)
-          .onAppear(){
-            Decoy.shared.setUp()
-          }
+      if Decoy.isXCUI(), let urlSession = Decoy.urlSession {
+        ContentView(api: APIClient(session: urlSession))
       } else {
         ContentView(api: APIClient(session: .shared))
       }
     }
+  }
+}
+
+class AppDelegate: NSObject, UIApplicationDelegate {
+  func application(
+    _ application: UIApplication,
+    didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil
+  ) -> Bool {
+    Decoy.setUp()
+    return true
   }
 }
