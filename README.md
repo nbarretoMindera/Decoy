@@ -1,16 +1,16 @@
 # Decoy
 
-## ❓ So, what is Decoy?
+## ❓ What is Decoy?
 
-Decoy is a Swift package used to easily create local, mocked responses to network calls made via `URLSession` for XCUI tests. These are managed entirely within Xcode, and no HTTP server or other intermediary is required.
+Decoy is a Swift package that intercepts network requests made via URLSession and returns pre-configured mock responses (or records live responses) without the need for an external HTTP server. Designed primarily for XCUI tests, Decoy lets you simulate network responses entirely within Xcode, so your UI tests run quickly and reliably.
 
 Using Decoy, you can:
-* Use your app in production to automagically create a script of mocks.
-* Queue specific mocked JSON responses to requests to specific endpoint URLs.
-* Return those mocked responses in the order they were queued to create a flow.
-* Use `URLSession` as normal in your app's features, meaning Decoy is not exposed to your features internally.
+* **Record live responses**: Automatically capture real API responses and store them as mocks.
+* **Queue mocked responses**: Specify and queue JSON mocks for particular endpoint URLs.
+* **Replay mocks in sequence**: Return queued mocks in a controlled flow during testing.
+* **Keep production code untouched**: Your app uses URLSession as normal, and Decoy intercepts calls under the hood.
 
-## 🧱 And how do I implement it?
+## 🧱 How do I implement it?
 
 The `Decoy` package contains two targets: `Decoy` and `DecoyXCUI`, which are added as dependencies of your `App` and its `AppUITests` targets respectively. They're only a few kilobytes in size and will have no major impact on the size of your release binary in the App Store. Decoy works best when your app uses a shared instance of `URLSession`, as in this case, you only need `import Decoy` once. To get up and running:
 
@@ -20,22 +20,21 @@ The `Decoy` package contains two targets: `Decoy` and `DecoyXCUI`, which are add
 * Choose the `DecoyXCUI` target as a dependency for your **UI test** target.
 
 ### In the app:
-* In your app, set up Decoy as soon as your app launches:
+* Set up Decoy on launch:
   ```
   Decoy.setUp()
   ```
-* This will implicitly mock `URLSession.shared`, but you can pass in your own if you prefer.
 * When you use `URLSession` in your app, use `Decoy.urlSession` instead:
   ```
-  FooAPIClient(urlSession: Decoy.urlSession ?? .shared)
+  FooAPIClient(urlSession: Decoy.urlSession)
   ```
 
 ### In the UI test target:
-* In your UI test target, have the test classes inherit from `DecoyUITestCase`.
+* In your UI test target, have the test classes inherit from `DecoyTestCase`.
 * Call the custom `setUp()` method, like so, passing in the test mode you'd like to use.
   ```
   override func setUp() {
-    super.setUp(mode: .record)
+    super.setUp(mode: .record) // or .liveIfUnmocked, .forceOffline
   }
   ```
 * This will launch your app with the required environment variables to use Decoy.
@@ -67,6 +66,17 @@ Yes! One of Decoy' handier features is the ability to record real responses prov
 * Now, re-run your tests.
 * Decoy will detect that a mock exists with the given test name, and will pass it on to your app.
 
+## 🔨 How does it workk?
+
+Decoy leverages a custom URLProtocol (`DecoyURLProtocol`) to intercept all network requests made by a URLSession. The protocol:
+* Checks for a queued mock in Decoy’s internal queue:
+  * If a mock exists, it returns the mock (and records it if recording is enabled).
+* Performs a live network request if no mock is found and the mode is .liveIfUnmocked or .record:
+  * In record mode, it records the live response.
+* Throws an error in .forceOffline mode if no mock is available.
+
+Decoy also provides a `setUp()` function that loads mocks from disk (using environment-specified directory and filenames) and queues them, and a `urlSession` computed property that returns a `URLSession` configured to use the `DecoyURLProtocol`.
+
 ## 👩‍💻 Can I try it for myself?
 
 There's a `DecoyExample` in this repository. You can build it and take a look, it's super simple. It uses a couple of free public APIs as examples and its UI test target shows how to mock single or multiple calls to single or multiple endpoints with Decoy.
@@ -76,8 +86,5 @@ There's a `DecoyExample` in this repository. You can build it and take a look, i
 It's still early days, and I'm excited to see how we can continue to grow Decoy into an even more useful UI test mocking library. It's a specific use case that I don't really want to deviate from too much, I'm thinking of these tests as snapshots with a flow, and separate from integration testing (which is still crucially important).
 
 Some specific things that still need doing / some ideas for the future:
-* Decide on how errors are represented in the JSON and how to mock them usefully.
-  * We need to think about Swift Errors vs. NSErrors vs. a JSON dictionary of error parameters, etc.
-* Automatically generate mocks for an API using some sort of scripting and Swagger, etc.
-* Verify recorded mocks are still up to date versus responses delivered from the backend they are mocking.
-
+* Enhancing error representation in JSON mocks.
+* Verify recorded mocks are still up to date versus responses delivered from the backend they are mocking (avoid mock drift).
