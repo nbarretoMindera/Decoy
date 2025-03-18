@@ -48,8 +48,6 @@ public enum Decoy {
     self.session = Session(mocking: session)
 
     guard Decoy.isXCUI(processInfo: processInfo) else { return }
-    guard let modeString = processInfo.environment[Decoy.Constants.mode] else { return }
-    guard let mode = Decoy.Mode(rawValue: modeString) else { return }
     guard let directory = processInfo.environment[Decoy.Constants.mockDirectory] else { return }
     guard let filename = processInfo.environment[Decoy.Constants.mockFilename] else { return }
 

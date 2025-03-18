@@ -40,7 +40,7 @@ struct Loader: LoaderInterface {
 
     let data = data(from: mock)
     let urlResponse = urlResponse(to: url, from: mock)
-    let response = Stub.Response(data: data, urlResponse: urlResponse, error: nil)
+    let response = Stub.Response(data: data, urlResponse: urlResponse, error: error(from: mock))
 
     return Stub(url: url, response: response)
   }

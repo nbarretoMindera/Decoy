@@ -1,7 +1,7 @@
 import Foundation
 
 public protocol SessionInterface {
-  init(mocking: URLSession)
+  init(mocking: URLSession, processInfo: ProcessInfo)
   var urlSession: URLSession { get }
   func dataTask(
     with request: URLRequest,
@@ -26,9 +26,9 @@ public class Session: URLSession, SessionInterface, @unchecked Sendable {
 
   /// Initialise a `Session` which wraps another `URLSession` and can mock its data tasks.
   /// Reads the "DECOY_MODE" environment variable to determine the mode, defaulting to `.liveIfUnmocked` if not set.
-  required public init(mocking session: URLSession = .shared) {
+  required public init(mocking session: URLSession = .shared, processInfo: ProcessInfo = .processInfo) {
     self.urlSession = session
-    if let modeString = ProcessInfo.processInfo.environment[Decoy.Constants.mode],
+    if let modeString = processInfo.environment[Decoy.Constants.mode],
        let modeEnum = Decoy.Mode(rawValue: modeString) {
       self.mode = modeEnum
     } else {

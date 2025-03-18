@@ -42,6 +42,27 @@ final class SessionTests: XCTestCase {
     XCTAssertIdentical(sut.urlSession, URLSession.shared)
   }
 
+  func test_init_shouldReadMode_whenRecord() {
+    let mockProcessInfo = MockProcessInfo()
+    mockProcessInfo.mockedEnvironment = [Decoy.Constants.mode: "record"]
+    let sut = Session(mocking: .shared, processInfo: mockProcessInfo)
+    XCTAssert(sut.mode == .record)
+  }
+
+  func test_init_shouldReadMode_whenForceOffline() {
+    let mockProcessInfo = MockProcessInfo()
+    mockProcessInfo.mockedEnvironment = [Decoy.Constants.mode: "forceOffline"]
+    let sut = Session(mocking: .shared, processInfo: mockProcessInfo)
+    XCTAssert(sut.mode == .forceOffline)
+  }
+
+  func test_init_shouldReadMode_whenLiveIfUnmocked() {
+    let mockProcessInfo = MockProcessInfo()
+    mockProcessInfo.mockedEnvironment = [Decoy.Constants.mode: "liveIfUnmocked"]
+    let sut = Session(mocking: .shared, processInfo: mockProcessInfo)
+    XCTAssert(sut.mode == .liveIfUnmocked)
+  }
+
   // MARK: - dataTaskWithURLRequest
 
   func test_dataTaskWithURLRequest_shouldReturnAppropriateSubclass() {

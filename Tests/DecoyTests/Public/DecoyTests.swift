@@ -8,6 +8,11 @@ final class DecoyTests: XCTestCase {
     Decoy.queue.queuedResponses.removeAll()
   }
 
+  func test_urlSession_shouldSucceed_whenSessionIsURLSession() {
+    Decoy.setUp()
+    XCTAssertNotNil(Decoy.urlSession)
+  }
+
   func test_isXCUI_shouldReferToProcessInfo_whenTrue() {
     let mockedProcessInfo = MockProcessInfo()
     mockedProcessInfo.mockedIsRunningXCUI = true
@@ -55,7 +60,7 @@ final class DecoyTests: XCTestCase {
       Decoy.Constants.mode: String("record"),
       Decoy.Constants.isXCUI: String(true),
       Decoy.Constants.mockDirectory: url!.absoluteString,
-      Decoy.Constants.mockFilename: "LoaderTests.json"
+      Decoy.Constants.mockFilename: "LoaderTest.json"
     ]
 
     Decoy.setUp(session: Session(), processInfo: processInfo)
@@ -81,7 +86,6 @@ final class DecoyTests: XCTestCase {
 }
 
 private extension DecoyTests {
-
   var url: URL {
     URL(string: "A")!
   }

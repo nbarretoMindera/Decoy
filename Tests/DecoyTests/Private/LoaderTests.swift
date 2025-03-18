@@ -22,12 +22,12 @@ final class LoaderTests: XCTestCase {
   }
 
   func test_loadJSON_shouldReturnNil_whenURLContainsNonJSONData() {
-    guard let url = Bundle.testing("BadJSONTests.json") else { return XCTFail(#function) }
+    guard let url = Bundle.testing("BadJSONTest.json") else { return XCTFail(#function) }
     XCTAssertNil(loader.loadJSON(from: url))
   }
 
   func test_loadJSON_shouldReturnParsedData() {
-    guard let url = Bundle.testing("LoaderTests.json") else { return XCTFail(#function) }
+    guard let url = Bundle.testing("LoaderTest.json") else { return XCTFail(#function) }
     let result = loader.loadJSON(from: url)
     XCTAssertEqual(result![0].url.absoluteString, "https://testing-some-json")
 
@@ -54,5 +54,17 @@ final class LoaderTests: XCTestCase {
     guard let url = Bundle.testing("NoMockTest.json") else { return XCTFail(#function) }
     guard let result = loader.loadJSON(from: url) else { return XCTFail(#function) }
     XCTAssert(result.isEmpty)
+  }
+
+  func test_loadJSON_shouldParse_whenDictionaryHasNoMockJSONInResponse() {
+    guard let url = Bundle.testing("BadMockTest.json") else { return XCTFail(#function) }
+    guard let result = loader.loadJSON(from: url) else { return XCTFail(#function) }
+    XCTAssertNil(result[0].response.data)
+  }
+
+  func test_loadJSON_shouldReturnNilError() {
+    guard let url = Bundle.testing("LoaderTest.json") else { return XCTFail(#function) }
+    guard let result = loader.loadJSON(from: url) else { return XCTFail(#function) }
+    XCTAssertNil(result[0].response.error)
   }
 }

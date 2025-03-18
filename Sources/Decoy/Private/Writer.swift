@@ -8,7 +8,6 @@ protocol WriterInterface {
 enum WriterError: Error {
   case filePathNotFound
   case couldNotSerializeJSON
-  case compressionFailed
 }
 
 class Writer: WriterInterface {
@@ -22,9 +21,7 @@ class Writer: WriterInterface {
 
   func write(recordings: [[String: Any]]) throws {
     guard let path, let file else { throw WriterError.filePathNotFound }
-    guard let jsonData = try? JSONSerialization.data(withJSONObject: recordings) else {
-      throw WriterError.couldNotSerializeJSON
-    }
+    guard let jsonData = try? JSONSerialization.data(withJSONObject: recordings) else { throw WriterError.couldNotSerializeJSON }
 
     var url = URL(fileURLWithPath: path, isDirectory: true)
     try fileManager.createDirectory(at: url, withIntermediateDirectories: true)
