@@ -1,49 +1,90 @@
 import Foundation
 
-/// A protocol defining a wrapper around `URLSession` that supports mocking.
-///
-/// This protocol is designed to be implemented by a class that wraps `URLSession`,
-/// allowing the creation of mockable data tasks.
-public protocol SessionInterface {
+/// A custom URLProtocol that intercepts network requests and serves mock responses.
+/// If a mock is queued, it returns that response. Otherwise, if in liveIfUnmocked mode,
+/// it performs a live network request; if in forceOffline mode, it returns an error.
+class DecoyURLProtocol: URLProtocol {
 
-  /// Initializes a new session that wraps an existing `URLSession`.
-  ///
-  /// - Parameters:
-  ///   - mocking: The `URLSession` instance to be wrapped.
-  ///   - processInfo: The `ProcessInfo` instance used to determine the session mode.
-  init(mocking: URLSession, processInfo: ProcessInfo)
+  override class func canInit(with request: URLRequest) -> Bool {
+    // Intercept all requests.
+    return true
+  }
 
-  /// The underlying `URLSession` instance used for networking.
-  var urlSession: URLSession { get }
+  override class func canonicalRequest(for request: URLRequest) -> URLRequest {
+    return request
+  }
 
-  /// Creates a data task with a `URLRequest`, returning a `URLSessionDataTask`.
-  ///
-  /// - Parameters:
-  ///   - request: The `URLRequest` to be executed.
-  ///   - completionHandler: A closure that handles the response, including data, URL response, and any error.
-  /// - Returns: A `URLSessionDataTask` that can be resumed to start the request.
-  func dataTask(
-    with request: URLRequest,
-    completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void
-  ) -> URLSessionDataTask
+  override func startLoading() {
+    guard let url = request.url else {
+      client?.urlProtocol(self, didFailWithError: URLError(.badURL))
+      return
+    }
 
-  /// Creates a data task with a `URL`, returning a `URLSessionDataTask`.
-  ///
-  /// - Parameters:
-  ///   - url: The `URL` to be requested.
-  ///   - completionHandler: A closure that handles the response, including data, URL response, and any error.
-  /// - Returns: A `URLSessionDataTask` that can be resumed to start the request.
-  func dataTask(
-    with url: URL,
-    completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void
-  ) -> URLSessionDataTask
+    // Check the mock queue for a response.
+    if let mockResponse = Decoy.queue.nextQueuedResponse(for: url) {
+      if let data = mockResponse.data {
+        client?.urlProtocol(self, didLoad: data)
+      }
+      if let urlResponse = mockResponse.urlResponse {
+        client?.urlProtocol(self, didReceive: urlResponse, cacheStoragePolicy: .notAllowed)
+      }
+
+      // If recording is enabled, record the mocked response.
+      if Decoy.recorder.shouldRecord {
+        Decoy.recorder.record(url: url, data: mockResponse.data, response: mockResponse.urlResponse, error: nil)
+      }
+
+      client?.urlProtocolDidFinishLoading(self)
+      return
+    }
+
+    // No mock available – decide behavior based on the Decoy mode.
+    switch Decoy.mode {
+    case .liveIfUnmocked, .record:
+      // For both liveIfUnmocked and record modes, perform a live network request.
+      // Create a URLSession configuration that does not include DecoyURLProtocol to avoid recursion.
+      let config = URLSessionConfiguration.default
+      config.protocolClasses = config.protocolClasses?.filter { $0 != DecoyURLProtocol.self }
+      let liveSession = URLSession(configuration: config)
+
+      let task = liveSession.dataTask(with: request) { data, response, error in
+        if let error = error {
+          self.client?.urlProtocol(self, didFailWithError: error)
+        } else {
+          if let response = response {
+            self.client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+          }
+          if let data = data {
+            self.client?.urlProtocol(self, didLoad: data)
+          }
+          // If in record mode, record the live response.
+          if Decoy.mode == .record, Decoy.recorder.shouldRecord {
+            Decoy.recorder.record(url: url, data: data, response: response, error: error)
+          }
+          self.client?.urlProtocolDidFinishLoading(self)
+        }
+      }
+      task.resume()
+
+    case .forceOffline:
+      // In forceOffline mode, if no mock exists, return an error.
+      let error = NSError(domain: "DecoyErrorDomain",
+                          code: -1,
+                          userInfo: [NSLocalizedDescriptionKey: "No mock available for URL \(url)"])
+      client?.urlProtocol(self, didFailWithError: error)
+    }
+  }
+
+  override func stopLoading() {
+    // No special cleanup necessary.
+  }
 }
 
 /// A subclass of `URLSession` that integrates with Decoy for request mocking and response recording.
 ///
 /// This class wraps a `URLSession` instance, overriding `dataTask` methods to inject Decoy's mocked `DataTask` objects.
 /// It also records responses if Decoy's recorder is active.
-public class Session: URLSession, SessionInterface, @unchecked Sendable {
+public class Session: URLSession, @unchecked Sendable {
 
   /// The underlying `URLSession` instance being wrapped.
   public let urlSession: URLSession
@@ -74,57 +115,5 @@ public class Session: URLSession, SessionInterface, @unchecked Sendable {
     } else {
       self.mode = .liveIfUnmocked
     }
-  }
-
-  /// Creates a Decoy-wrapped data task for a `URLRequest`.
-  ///
-  /// - Parameters:
-  ///   - request: The `URLRequest` to be executed.
-  ///   - completionHandler: A closure that handles the response, including data, URL response, and any error.
-  /// - Returns: A `URLSessionDataTask` that can be resumed to start the request.
-  ///
-  /// This method:
-  /// 1. Calls the original `urlSession.dataTask(with:completionHandler:)` to create a standard data task.
-  /// 2. If Decoy is recording responses, it captures the request's response and stores it.
-  /// 3. Wraps the standard `URLSessionDataTask` in a `DataTask` to enable Decoy's mocking capabilities.
-  override public func dataTask(
-    with request: URLRequest,
-    completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void
-  ) -> URLSessionDataTask {
-    let superTask = urlSession.dataTask(with: request, completionHandler: { [weak self] data, response, error in
-      guard let self = self else { return }
-      if self.recorder.shouldRecord, let url = request.url {
-        self.recorder.record(url: url, data: data, response: response, error: error)
-      }
-      completionHandler(data, response, error)
-    })
-
-    return DataTask(mocking: superTask, mode: mode, completionHandler: completionHandler)
-  }
-
-  /// Creates a Decoy-wrapped data task for a `URL`.
-  ///
-  /// - Parameters:
-  ///   - url: The `URL` to be requested.
-  ///   - completionHandler: A closure that handles the response, including data, URL response, and any error.
-  /// - Returns: A `URLSessionDataTask` that can be resumed to start the request.
-  ///
-  /// This method:
-  /// 1. Calls the original `urlSession.dataTask(with:completionHandler:)` to create a standard data task.
-  /// 2. If Decoy is recording responses, it captures the request's response and stores it.
-  /// 3. Wraps the standard `URLSessionDataTask` in a `DataTask` to enable Decoy's mocking capabilities.
-  override public func dataTask(
-    with url: URL,
-    completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void
-  ) -> URLSessionDataTask {
-    let superTask = urlSession.dataTask(with: url, completionHandler: { [weak self] data, response, error in
-      guard let self = self else { return }
-      if self.recorder.shouldRecord {
-        self.recorder.record(url: url, data: data, response: response, error: error)
-      }
-      completionHandler(data, response, error)
-    })
-
-    return DataTask(mocking: superTask, mode: mode, completionHandler: completionHandler)
   }
 }

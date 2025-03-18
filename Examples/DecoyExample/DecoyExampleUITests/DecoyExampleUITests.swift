@@ -1,3 +1,4 @@
+import Decoy
 import DecoyXCUI
 import XCTest
 
@@ -13,22 +14,55 @@ final class DecoyExampleUITests: DecoyTestCase {
   }
 
   /// The tests themselves are stock `XCUITest`, and no other changes are needed.
-  func test_example_oneCallToOneEndpoint() {
-    app.buttons["Fetch Apple"].firstMatch.tap()
+  func test_example_oneCallToOneEndpoint_usingClosureSyntax() {
+    app.buttons["Fetch Apple (Closure)"].firstMatch.tap()
     XCTAssert(app.staticTexts["Apple"].waitForExistence(timeout: 5))
   }
 
-  func test_example_twoCallsToSameEndpoint() {
-    app.buttons["Fetch Apple"].firstMatch.tap()
+  func test_example_twoCallsToSameEndpoint_usingClosureSyntax() {
+    app.buttons["Fetch Apple (Closure)"].firstMatch.tap()
     XCTAssert(app.staticTexts["Apple"].waitForExistence(timeout: 5))
-    app.buttons["Fetch Banana"].firstMatch.tap()
+    app.buttons["Fetch Banana (Closure)"].firstMatch.tap()
     XCTAssert(app.staticTexts["Banana"].waitForExistence(timeout: 5))
   }
 
-  func test_example_twoCallsToDifferentEndpoints() {
-    app.buttons["Fetch Apple"].firstMatch.tap()
+  func test_example_twoCallsToDifferentEndpoints_usingClosureSyntax() {
+    app.buttons["Fetch Apple (Closure)"].firstMatch.tap()
     XCTAssert(app.staticTexts["Apple"].waitForExistence(timeout: 5))
-    app.buttons["Fetch Cat Fact"].firstMatch.tap()
+    app.buttons["Fetch Cat Fact (Closure)"].firstMatch.tap()
+    XCTAssert(app.staticTexts["..."].waitForNonExistence(timeout: 5))
+  }
+
+  func test_example_oneCallToOneEndpoint_usingAsyncSyntax() {
+    app.buttons["Fetch Apple (Async)"].firstMatch.tap()
+    XCTAssert(app.staticTexts["Apple"].waitForExistence(timeout: 5))
+  }
+
+  func test_example_twoCallsToSameEndpoint_usingAsyncSyntax() {
+    app.buttons["Fetch Apple (Async)"].firstMatch.tap()
+    XCTAssert(app.staticTexts["Apple"].waitForExistence(timeout: 5))
+    app.buttons["Fetch Banana (Async)"].firstMatch.tap()
+    XCTAssert(app.staticTexts["Banana"].waitForExistence(timeout: 5))
+  }
+
+  func test_example_twoCallsToDifferentEndpoints_usingAsyncSyntax() {
+    app.buttons["Fetch Apple (Async)"].firstMatch.tap()
+    XCTAssert(app.staticTexts["Apple"].waitForExistence(timeout: 5))
+    app.buttons["Fetch Cat Fact (Async)"].firstMatch.tap()
+    XCTAssert(app.staticTexts["..."].waitForNonExistence(timeout: 5))
+  }
+
+  func test_example_twoCallsToSameEndpoint_usingClosureAndAsyncSyntaxes() {
+    app.buttons["Fetch Apple (Closure)"].firstMatch.tap()
+    XCTAssert(app.staticTexts["Apple"].waitForExistence(timeout: 5))
+    app.buttons["Fetch Banana (Async)"].firstMatch.tap()
+    XCTAssert(app.staticTexts["Banana"].waitForExistence(timeout: 5))
+  }
+
+  func test_example_twoCallsToDifferentEndpoints_usingClosureAsyncSyntax() {
+    app.buttons["Fetch Apple (Async)"].firstMatch.tap()
+    XCTAssert(app.staticTexts["Apple"].waitForExistence(timeout: 5))
+    app.buttons["Fetch Cat Fact (Closure)"].firstMatch.tap()
     XCTAssert(app.staticTexts["..."].waitForNonExistence(timeout: 5))
   }
 }
