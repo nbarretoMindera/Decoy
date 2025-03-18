@@ -68,4 +68,24 @@ class DecoyURLProtocolTests: XCTestCase {
 
     XCTAssertEqual(testRecorder.recordCallCount, 1)
   }
+
+  func test_sendForceOfflineError() {
+    let url = URL(string: "https://example.com/offline")!
+    let request = URLRequest(url: url)
+    setenv(decoyModeKey, "forceOffline", 1)
+
+    Decoy.queue.queuedResponses[url] = nil
+
+    let client = FakeURLProtocolClient()
+    let protocolInstance = DecoyURLProtocol(request: request, cachedResponse: nil, client: client)
+
+    protocolInstance.startLoading()
+
+    XCTAssertNotNil(client.receivedError)
+    if let nsError = client.receivedError as NSError? {
+      XCTAssertEqual(nsError.domain, "DecoyErrorDomain")
+      XCTAssertEqual(nsError.code, -1)
+      XCTAssertTrue(nsError.localizedDescription.contains("No mock available for URL"))
+    }
+  }
 }
