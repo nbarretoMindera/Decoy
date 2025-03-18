@@ -1,3 +1,8 @@
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/9515d75a-9cef-4e8e-9006-23a18df7a2b4" width="300" alt="Decoy Logo">
+  <br><i>Quack. Mock.</i>
+</div>
+
 # Decoy
 
 ## ❓ What is Decoy?
