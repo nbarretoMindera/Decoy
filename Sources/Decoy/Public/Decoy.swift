@@ -91,7 +91,7 @@ public enum Decoy {
 
     // Queue each loaded stub for later retrieval.
     stubs.forEach { stub in
-      queue.queue(Stub: stub)
+      queue.queue(stub: stub)
     }
 
     print("Decoy.setUp: Loaded and queued \(stubs.count) mocks from \(url.absoluteString)")

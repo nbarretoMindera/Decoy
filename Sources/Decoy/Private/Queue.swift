@@ -15,7 +15,7 @@ protocol QueueInterface {
   ///
   /// - Parameter Stub: A `Stub` instance containing both the URL and its associated response.
   ///   The response is added to the queue for that URL.
-  func queue(Stub: Stub)
+  func queue(stub: Stub)
 
   /// Synchronously retrieves and removes the next queued response for a given URL.
   ///
@@ -40,12 +40,12 @@ class Queue: QueueInterface {
   /// - Parameter Stub: A `Stub` instance that contains the URL and the associated response.
   ///   If no responses exist for that URL, an array is created, and then the response is inserted
   ///   at the beginning of the array to maintain a LIFO order.
-  func queue(Stub: Stub) {
-    if queuedResponses[Stub.url] == nil {
-      queuedResponses[Stub.url] = []
+  func queue(stub: Stub) {
+    if queuedResponses[stub.url] == nil {
+      queuedResponses[stub.url] = []
     }
     // Insert the new response at the beginning to maintain LIFO order.
-    queuedResponses[Stub.url]?.insert(Stub.response, at: 0)
+    queuedResponses[stub.url]?.insert(stub.response, at: 0)
   }
 
   /// Synchronously retrieves and removes the next queued response for a given URL.
