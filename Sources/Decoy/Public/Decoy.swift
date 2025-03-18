@@ -52,12 +52,12 @@ public enum Decoy {
   /// used as mocks in future test runs.
   static var recorder: RecorderInterface = Recorder()
 
-  /// The current operating mode for Decoy.
+  /// Helper to determine the mode from a given ProcessInfo.
   ///
-  /// This is determined by reading the environment variable specified by `Constants.mode`.
-  /// If no valid mode is provided, it defaults to `.liveIfUnmocked`.
-  public static var mode: Decoy.Mode {
-    guard let modeString = ProcessInfo.processInfo.environment[Constants.mode] else { return .liveIfUnmocked }
+  /// - Parameter processInfo: The ProcessInfo to inspect.
+  /// - Returns: The Decoy mode based on the environment variable, defaulting to `.liveIfUnmocked`.
+  public static func mode(for processInfo: ProcessInfo = .processInfo) -> Decoy.Mode {
+    guard let modeString = processInfo.environment[Constants.mode] else { return .liveIfUnmocked }
     return Decoy.Mode(rawValue: modeString) ?? .liveIfUnmocked
   }
 

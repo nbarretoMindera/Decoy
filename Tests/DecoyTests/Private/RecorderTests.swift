@@ -70,11 +70,3 @@ final class RecorderTests: XCTestCase {
     XCTAssert(writer.writeWasCalled)
   }
 }
-
-private class MockWriter: WriterInterface {
-  var writeWasCalled = false
-
-  func write(recordings: [[String: Any]]) {
-    writeWasCalled = true
-  }
-}
