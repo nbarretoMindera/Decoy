@@ -12,15 +12,15 @@ public enum Decoy {
   /// Constants used throughout the Decoy framework.
   public struct Constants {
     /// Environment variable key to determine if the app is running in a UI test environment.
-    public static let isXCUI = "Decoy_IS_XCUI"
+    public static let isXCUI = "DECOY_IS_XCUI"
     /// Environment variable key for specifying Decoy’s operating mode.
-    public static let mode = "Decoy_MODE"
+    public static let mode = "DECOY_MODE"
     /// Environment variable key for the directory where mock files are stored.
-    public static let mockDirectory = "Decoy_MOCK_DIRECTORY"
+    public static let mockDirectory = "DECOY_MOCK_DIRECTORY"
     /// Environment variable key for the filename of the mock file.
-    public static let mockFilename = "Decoy_MOCK_FILENAME"
-    /// The folder name used for storing mock files.
-    public static let mocksFolder = "__Mocks__"
+    public static let mockFilename = "DECOY_MOCK_FILENAME"
+    /// The folder name used for storing decoys.
+    public static let mocksFolder = "__Decoys__"
   }
 
   /// The operating mode for Decoy.
