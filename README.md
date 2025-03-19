@@ -32,6 +32,10 @@ The `Decoy` package contains two targets: `Decoy` and `DecoyXCUI`, which are add
   ```
   FooAPIClient(urlSession: Decoy.urlSession)
   ```
+* Or, if you use a custom `URLConfiguration`, add `DecoyURLProtocol` to its list of `protocolClasses`:
+  ```
+  configuration.protocolClasses = [DecoyURLProtocol.self] + (configuration.protocolClasses ?? [])
+  ```
 
 ### In the UI test target:
 * In your UI test target, have the test classes inherit from `DecoyTestCase`.
@@ -69,34 +73,6 @@ Yes! One of Decoy' handier features is the ability to record real responses prov
   ```
 * Now, re-run your tests.
 * Decoy will detect that a mock exists with the given test name, and will pass it on to your app.
-
-## 🎨 Using Decoy with a Custom URLSession
-
-Decoy intercepts network requests by injecting a custom `URLProtocol` (`DecoyURLProtocol`) into your session’s configuration. If you already have a custom URLSession, you can integrate Decoy without significant changes to your existing setup.
-
-### Step 1: Configure Your URLSession to Use Decoy
-
-Decoy provides a helper property, `Decoy.urlSession`, which returns a `URLSession` preconfigured with `DecoyURLProtocol`. This ensures that all requests are intercepted by Decoy. For example, if you have a factory function like this:
-
-```
-func makeURLSession(utilities: Utilities, delegate: URLSessionDelegate?) -> URLSession {
-  let configuration = URLSessionConfiguration.default
-  return URLSession(configuration: configuration, delegate: delegate, delegateQueue: nil)
-}
-```
-
-You can update it to use Decoy’s configuration:
-
-```
-func makeURLSession(utilities: Utilities, delegate: URLSessionDelegate?) -> URLSession {
-  let configuration = URLSessionConfiguration.default
-  
-  // Prepend DecoyURLProtocol so that it intercepts requests.
-  configuration.protocolClasses = [DecoyURLProtocol.self] + (configuration.protocolClasses ?? [])
-  
-  return URLSession(configuration: configuration, delegate: delegate, delegateQueue: nil)
-}
-```
 
 ## 🔨 How does it work?
 
