@@ -1,4 +1,3 @@
-#if canImport(Apollo)
 import Apollo
 import ApolloAPI
 import Foundation
@@ -78,4 +77,3 @@ public class DecoyGraphQLInterceptor: ApolloInterceptor {
     }
   }
 }
-#endif
