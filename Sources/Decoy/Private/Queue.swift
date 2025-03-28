@@ -33,14 +33,14 @@ public class Queue: QueueInterface {
   ///
   /// Each URL key stores an array of responses, where the most recent response (inserted last)
   /// is returned first when requested.
-  var queuedResponses = [URL: [Stub.Response]]()
+  public var queuedResponses = [URL: [Stub.Response]]()
 
   /// Enqueues a mocked response for a specific URL.
   ///
   /// - Parameter Stub: A `Stub` instance that contains the URL and the associated response.
   ///   If no responses exist for that URL, an array is created, and then the response is inserted
   ///   at the beginning of the array to maintain a LIFO order.
-  func queue(stub: Stub) {
+  public func queue(stub: Stub) {
     if queuedResponses[stub.url] == nil {
       queuedResponses[stub.url] = []
     }
@@ -55,7 +55,7 @@ public class Queue: QueueInterface {
   ///
   /// This method removes and returns the last element of the array for the specified URL,
   /// which corresponds to the most recently added response.
-  func nextQueuedResponse(for url: URL) -> Stub.Response? {
+  public func nextQueuedResponse(for url: URL) -> Stub.Response? {
     return queuedResponses[url]?.popLast()
   }
 }

@@ -1,0 +1,24 @@
+{
+  "originHash" : "741899cf1deb7a09cd614293309dc1cba861bd10b77b1bf4b4ee8dcc447b4b6c",
+  "pins" : [
+    {
+      "identity" : "apollo-ios",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apollographql/apollo-ios",
+      "state" : {
+        "revision" : "9aa748d6f0526a744d49d59a2383dc7fdf9d645b",
+        "version" : "1.18.0"
+      }
+    },
+    {
+      "identity" : "sqlite.swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/stephencelis/SQLite.swift.git",
+      "state" : {
+        "revision" : "a95fc6df17d108bd99210db5e8a9bac90fe984b8",
+        "version" : "0.15.3"
+      }
+    }
+  ],
+  "version" : 3
+}

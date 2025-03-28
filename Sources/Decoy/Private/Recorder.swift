@@ -61,7 +61,7 @@ public class Recorder: RecorderInterface {
   ///
   /// This property checks the `Decoy.Constants.mode` environment variable and returns
   /// `true` if it is set to `.record`.
-  var shouldRecord: Bool {
+  public var shouldRecord: Bool {
     processInfo.environment[Decoy.Constants.mode] == Decoy.Mode.record.rawValue
   }
 
@@ -78,7 +78,7 @@ public class Recorder: RecorderInterface {
   /// 2. Converts the stub into a JSON dictionary.
   /// 3. Inserts the recorded request at the beginning of the `recordings` array.
   /// 4. Attempts to persist the updated recordings to disk using `Writer`.
-  func record(url: URL, data: Data?, response: URLResponse?, error: Error?) {
+  public func record(url: URL, data: Data?, response: URLResponse?, error: Error?) {
     let stub = Stub(
       url: url,
       response: Stub.Response(
