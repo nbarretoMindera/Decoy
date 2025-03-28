@@ -4,7 +4,7 @@ import Foundation
 ///
 /// Implementations of this protocol allow you to store and later retrieve
 /// mocked responses for specific URLs, enabling deterministic testing of network calls.
-protocol QueueInterface {
+public protocol QueueInterface {
   /// A dictionary mapping URLs to an array of queued mocked responses.
   ///
   /// Each URL key is associated with an array of `Stub.Response` objects,
@@ -28,7 +28,7 @@ protocol QueueInterface {
 ///
 /// This class implements `QueueInterface` and stores mock responses in a dictionary keyed by URL.
 /// When a network request is intercepted, the next mocked response (if any) is returned.
-class Queue: QueueInterface {
+public class Queue: QueueInterface {
   /// A dictionary mapping URLs to an array of `Stub.Response` objects.
   ///
   /// Each URL key stores an array of responses, where the most recent response (inserted last)

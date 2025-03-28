@@ -1,10 +1,11 @@
 import Apollo
 import ApolloAPI
+import Decoy
 import Foundation
 
-public class DecoyGraphQLInterceptor: ApolloInterceptor {
+public class DecoyInterceptor: ApolloInterceptor {
   public var id: String {
-    "ExampleInterceptor"
+    "DecoyInterceptor"
   }
 
   public init() {}
@@ -35,7 +36,7 @@ public class DecoyGraphQLInterceptor: ApolloInterceptor {
         // Convert the stored stub data to a GraphQLResponse.
         guard let data = stubResponse.data else { fatalError("No data.") }
         guard let json = try JSONSerialization.jsonObject(with: data) as? JSONObject else { fatalError("Bad data.") }
-        let graphQLResponse = try GraphQLResponse(operation: request.operation, body: json)
+        let graphQLResponse = GraphQLResponse(operation: request.operation, body: json)
         let (result, _) = try graphQLResponse.parseResult()
         print("DecoyGraphQLInterceptor: Returning stubbed response for \(url.absoluteString)")
         completion(.success(result))
@@ -47,7 +48,7 @@ public class DecoyGraphQLInterceptor: ApolloInterceptor {
     }
 
     // If no stub is available, proceed with the live network request.
-    chain.proceedAsync(request: request, response: response) { result in
+    chain.proceedAsync(request: request, response: response, interceptor: self) { result in
       switch result {
       case .success(let graphQLResponse):
         if Decoy.mode() == .record {

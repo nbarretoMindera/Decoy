@@ -4,7 +4,7 @@ import Foundation
 ///
 /// This structure is used to store a mock for a network request, including the URL,
 /// response data, HTTP metadata, and optional error information.
-struct Stub {
+public struct Stub {
   /// The URL to which this mock applies.
   let url: URL
 
@@ -12,12 +12,12 @@ struct Stub {
   let response: Response
 
   /// A nested structure that contains the individual components of a mocked response.
-  struct Response {
+  public struct Response {
     /// The mocked response data.
     ///
     /// This is typically the body of the HTTP response (e.g., JSON data) that you want to return
     /// instead of performing a live network request.
-    let data: Data?
+    public let data: Data?
 
     /// The mocked HTTP URL response.
     ///

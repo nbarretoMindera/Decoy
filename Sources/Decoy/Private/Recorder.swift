@@ -4,7 +4,7 @@ import Foundation
 ///
 /// Implementations of this protocol store network request recordings and determine
 /// whether recording should occur based on the application's execution environment.
-protocol RecorderInterface {
+public protocol RecorderInterface {
 
   /// An array of recorded API interactions, stored as dictionaries.
   ///
@@ -31,13 +31,13 @@ protocol RecorderInterface {
 ///
 /// The `Recorder` class captures network request details, including response data and errors,
 /// storing them in memory and writing them to disk via a `Writer` instance.
-class Recorder: RecorderInterface {
+public class Recorder: RecorderInterface {
 
   /// An array of recorded API interactions for the current app session.
   ///
   /// Each recorded entry is stored as a JSON dictionary containing details of the request,
   /// response, and any associated errors.
-  var recordings = [[String: Any]]()
+  public var recordings = [[String: Any]]()
 
   /// The `ProcessInfo` instance used to determine whether recording is enabled.
   private let processInfo: ProcessInfo

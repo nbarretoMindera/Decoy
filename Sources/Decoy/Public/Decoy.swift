@@ -38,7 +38,7 @@ public enum Decoy {
   ///
   /// Mocks are enqueued as `Stub` objects keyed by their URL, allowing DecoyURLProtocol to retrieve
   /// and return the appropriate mock for a given request.
-  static var queue: QueueInterface = Queue()
+  public static var queue: QueueInterface = Queue()
 
   /// The loader used to read mocks from a JSON file.
   ///
@@ -50,7 +50,7 @@ public enum Decoy {
   ///
   /// When in record mode, live responses are captured by the recorder so that they can be saved and
   /// used as mocks in future test runs.
-  static var recorder: RecorderInterface = Recorder()
+  public static var recorder: RecorderInterface = Recorder()
 
   /// Helper to determine the mode from a given ProcessInfo.
   ///

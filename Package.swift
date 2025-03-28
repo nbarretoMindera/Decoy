@@ -10,13 +10,27 @@ let package = Package(
       targets: ["Decoy"]
     ),
     .library(
+      name: "DecoyApollo",
+      targets: ["DecoyApollo"]
+    ),
+    .library(
       name: "DecoyXCUI",
       targets: ["DecoyXCUI"]
     ),
   ],
+  dependencies: [
+    .package(url: "https://github.com/apollographql/apollo-ios", exact: "1.18.0"),
+  ],
   targets: [
     .target(
       name: "Decoy"
+    ),
+    .target(
+      name: "DecoyApollo",
+      dependencies: [
+        "Decoy",
+        .product(name: "Apollo", package: "apollo-ios")
+      ]
     ),
     .target(
       name: "DecoyXCUI",
@@ -28,6 +42,10 @@ let package = Package(
       resources: [
         .process("Resources")
       ]
+    ),
+    .testTarget(
+      name: "DecoyApolloTests",
+      dependencies: ["DecoyApollo"]
     ),
   ]
 )
