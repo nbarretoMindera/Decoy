@@ -9,7 +9,6 @@ struct Log {
   }
 
   func log(_ message: String) {
-    NSLog("This is an NSLog message from UITests")
     logger.info("🦆 Decoy: \(message)")
   }
 }
