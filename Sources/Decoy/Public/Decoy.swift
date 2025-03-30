@@ -46,6 +46,11 @@ public enum Decoy {
   /// of `Stub` objects, and returning them so they can be queued for later use.
   static var loader: LoaderInterface = Loader()
 
+  /// The log used to print debug statements that can be read while running tests.
+  ///
+  static var log = Log()
+
+
   /// The recorder that writes out live network responses.
   ///
   /// When in record mode, live responses are captured by the recorder so that they can be saved and
@@ -57,6 +62,7 @@ public enum Decoy {
   /// - Parameter processInfo: The ProcessInfo to inspect.
   /// - Returns: The Decoy mode based on the environment variable, defaulting to `.liveIfUnmocked`.
   public static func mode(for processInfo: ProcessInfo = .processInfo) -> Decoy.Mode {
+    log.log("Querying mode!!")
     guard let modeString = processInfo.environment[Constants.mode] else { return .liveIfUnmocked }
     return Decoy.Mode(rawValue: modeString) ?? .liveIfUnmocked
   }
