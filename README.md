@@ -6,17 +6,19 @@
 
 ## ❓ What is Decoy?
 
-Decoy is a Swift package that intercepts network requests made via URLSession and returns pre-configured mock responses (or records live responses) without the need for an external HTTP server. Designed primarily for XCUI tests, Decoy lets you simulate network responses entirely within Xcode, so your UI tests run quickly and reliably.
+Decoy is a Swift package that intercepts network requests made via URLSession or GraphQL via Apollo and returns pre-configured mock responses (or records live responses) without the need for an external HTTP server. Designed primarily for XCUI tests, Decoy lets you simulate network responses entirely within Xcode, so your UI tests run quickly and reliably.
 
 Using Decoy, you can:
 * **Record live responses**: Automatically capture real API responses and store them as mocks.
 * **Queue mocked responses**: Specify and queue JSON mocks for particular endpoint URLs.
 * **Replay mocks in sequence**: Return queued mocks in a controlled flow during testing.
-* **Keep production code untouched**: Your app uses URLSession as normal, and Decoy intercepts calls under the hood.
+* **Keep production code untouched**: Your app uses URLSession / Apollo as normal, and Decoy intercepts calls under the hood.
 
 ## 🧱 How do I implement it?
 
-The `Decoy` package contains two targets: `Decoy` and `DecoyXCUI`, which are added as dependencies of your `App` and its `AppUITests` targets respectively. They're only a few kilobytes in size and will have no major impact on the size of your release binary in the App Store. Decoy works best when your app uses a shared instance of `URLSession`, as in this case, you only need `import Decoy` once. To get up and running:
+The `Decoy` package contains three targets: `Decoy`, `DecoyApollo`, and `DecoyXCUI`. `Decoy` must be added as a dependency of your app target. `DecoyApollo` should also be added to your app target if it uses Apollo and you'd like to mock GraphQL. `DecoyXCUI` should be added to your UI testing target. These packages are only a few kilobytes in size and will have no major impact on the size of your release binary in the App Store. Decoy works best when your app uses a shared instance of `URLSession` or a single `Apollo` instance, as in this case, you only need `import Decoy` once.
+
+For a setup without GraphQL, to get up and running:
 
 ### In the project:
 * Add the Decoy package as a depedency.
@@ -47,6 +49,39 @@ The `Decoy` package contains two targets: `Decoy` and `DecoyXCUI`, which are add
   ```
 * This will launch your app with the required environment variables to use Decoy.
 
+For a setup using GraphQL:
+
+### In the project:
+* Add the Decoy package as a depedency.
+* Choose the `Decoy` target as a dependency for your **app** target.
+* Choose the `DecoyApollo` target as a dependency for your **app** target.
+* Choose the `DecoyXCUI` target as a dependency for your **UI test** target.
+
+### In the app:
+* Set up Decoy on launch:
+  ```
+  Decoy.setUp()
+  ```
+* When you use `Apollo` in your app, add a `DecoyInterceptor` in front of any others.
+  ```
+  override public func interceptors<Operation: GraphQLOperation>(for operation: Operation) -> [ApolloInterceptor] {
+    let interceptorsToAdd: [ApolloInterceptor] = [
+      DecoyInterceptor(),
+      // Any of your other interceptors...
+    ]
+  ```
+
+### In the UI test target:
+* In your UI test target, have the test classes inherit from `DecoyTestCase`.
+* Call the custom `setUp()` method, like so, passing in the test mode you'd like to use.
+  ```
+  override func setUp() {
+    super.setUp(mode: .record) // or .liveIfUnmocked, .forceOffline
+  }
+  ```
+* This will launch your app with the required environment variables to use Decoy.
+
+
 ## 🔴 Can I record with it?
 
 Yes! One of Decoy' handier features is the ability to record real responses provided by your APIs, and then play them back when running the tests. You can think of this similarly to how recording works in popular snapshot testing libraries, where you'll record a "known good" state of your API, then not hit the real network when running your tests, allowing your UI tests to be exactly that, rather than full integration tests.
@@ -76,7 +111,7 @@ Yes! One of Decoy' handier features is the ability to record real responses prov
 
 ## 🔨 How does it work?
 
-Decoy leverages a custom URLProtocol (`DecoyURLProtocol`) to intercept all network requests made by a URLSession. The protocol:
+For `URLSession`, Decoy leverages a custom URLProtocol (`DecoyURLProtocol`) to intercept all network requests made by a URLSession. Or, when mocking Apollo, Decoy provides a custom Interceptor which you can add to retrieve and serve the mocks. The protocol and interceptor:
 * Checks for a queued mock in Decoy’s internal queue:
   * If a mock exists, it returns the mock (and records it if recording is enabled).
 * Performs a live network request if no mock is found and the mode is .liveIfUnmocked or .record:
