@@ -86,7 +86,7 @@ public class DecoyInterceptor: ApolloInterceptor {
           guard let jsonData = try? JSONSerialization.data(withJSONObject: graphQLResponse.asJSONDictionary()) else {
             return
           }
-          // Attempt to parse an `HTTPURLResponse` from the `GraphQLResponse`.
+          // Attempt to parse an HTTPURLResponse from the GraphQLResponse.
           let recordedResponse: HTTPURLResponse
           if let liveResponse = response?.httpResponse as? HTTPURLResponse {
             recordedResponse = liveResponse
