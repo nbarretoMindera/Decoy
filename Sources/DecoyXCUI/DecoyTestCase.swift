@@ -30,11 +30,6 @@ open class DecoyTestCase: XCTestCase {
     app = appWithConfiguredLaunchEnvironment(directory: directory, mode: mode)
   }
 
-  open override func tearDown() {
-    Decoy.writeRecordings()
-    super.tearDown()
-  }
-
   /// Builds the directory path for storing mock data.
   ///
   /// - Parameters:

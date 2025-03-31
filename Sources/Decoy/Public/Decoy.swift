@@ -66,11 +66,6 @@ public enum Decoy {
     return Decoy.Mode(rawValue: modeString) ?? .liveIfUnmocked
   }
 
-  /// Write to disk all recordings from the recorder.
-  public static func writeRecordings() {
-    recorder.flush()
-  }
-
   /// Sets up Decoy by loading mocks from disk and queuing them for later use.
   ///
   /// This method should be called early in the app's launch (or in test setup) when running in a UI test
