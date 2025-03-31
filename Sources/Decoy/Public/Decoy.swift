@@ -46,8 +46,12 @@ public enum Decoy {
   /// of `Stub` objects, and returning them so they can be queued for later use.
   static var loader: LoaderInterface = Loader()
 
-  /// The log used to print debug statements that can be read while running tests.
-  static var log = Log()
+  /// The log used to print debug statements that can be read while running tests in a separate sandbox.
+  public static var logger: LoggerProtocol = Logger()
+
+  public static func log(_ message: String) {
+    logger.log(message)
+  }
 
   /// The recorder that writes out live network responses.
   ///
@@ -78,7 +82,7 @@ public enum Decoy {
     // Retrieve the directory and filename for the mocks from environment variables.
     guard let directory = processInfo.environment[Constants.mockDirectory],
           let filename = processInfo.environment[Constants.mockFilename] else {
-      print("Decoy.setUp: Missing environment variables for mock directory or filename.")
+      log("Decoy.setUp: Missing environment variables for mock directory or filename.")
       return
     }
 
@@ -88,7 +92,7 @@ public enum Decoy {
 
     // Load the mocks from the JSON file.
     guard let stubs = loader.loadJSON(from: url) else {
-      print("Decoy.setUp: Failed to load mocks from \(url.absoluteString)")
+      log("Decoy.setUp: Failed to load mocks from \(url.absoluteString)")
       return
     }
 
@@ -97,7 +101,7 @@ public enum Decoy {
       queue.queue(stub: stub)
     }
 
-    print("Decoy.setUp: Loaded and queued \(stubs.count) mocks from \(url.absoluteString)")
+    log("Decoy.setUp: Loaded and queued \(stubs.count) mocks from \(url.absoluteString)")
   }
 
   /// Returns a URLSession configured to intercept network requests.

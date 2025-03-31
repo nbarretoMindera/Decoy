@@ -10,6 +10,8 @@ open class DecoyTestCase: XCTestCase {
   /// The instance of `XCUIApplication` used to interact with the UI.
   public var app: XCUIApplication!
 
+  var logTailer: DecoyLogStream!
+
   /// Sets up the test environment with a specified mock directory and mode.
   ///
   /// - Parameters:
@@ -18,15 +20,20 @@ open class DecoyTestCase: XCTestCase {
   ///
   /// This method:
   /// 1. Calls `super.setUp()` to ensure the XCTest lifecycle functions correctly.
-  /// 2. Determines the directory where mock data should be stored.
-  /// 3. Configures the `XCUIApplication` instance with the correct launch environment for mock data usage.
+  /// 2. Assigns a logger to be able to print useful output to the console during UI testing, which occurs in a separate process.
+  /// 3. Determines the directory where mock data should be stored.
+  /// 4. Configures the `XCUIApplication` instance with the correct launch environment for mock data usage.
   public func setUp(path: String = #filePath, mode: Decoy.Mode = .liveIfUnmocked) {
     super.setUp()
 
+    logTailer = DecoyLogStream(testCase: self)
+
+    // Ensure we have a directory to write stubs to.
     guard let directory = buildDirectoryForStub(path: path, mode: mode) else {
       return XCTFail("Could not generate path to which to write stub.")
     }
 
+    // Configure and make the app available to tests.
     app = appWithConfiguredLaunchEnvironment(directory: directory, mode: mode)
   }
 
@@ -85,3 +92,4 @@ public extension DecoyTestCase {
     return last.replacingOccurrences(of: "]", with: "")
   }
 }
+
