@@ -3,6 +3,12 @@ import ApolloAPI
 import Decoy
 import Foundation
 
+/// Potential errors returned in the case of failure.
+public enum DecoyInterceptorError: Error {
+  case recordedStubContainsNoData
+  case couldNotParseToJSON
+}
+
 /// An Apollo interceptor that integrates the Decoy mocking framework into GraphQL requests.
 ///
 /// The DecoyInterceptor is responsible for intercepting GraphQL requests processed by Apollo. It
@@ -59,9 +65,13 @@ public class DecoyInterceptor: ApolloInterceptor {
     if let stubResponse = Decoy.queue.nextQueuedResponse(for: url) {
       do {
         // Ensure the stub response contains data.
-        guard let data = stubResponse.data else { return }
+        guard let data = stubResponse.data else {
+          return completion(.failure(DecoyInterceptorError.recordedStubContainsNoData))
+        }
         // Deserialize the stub data into a JSON object.
-        guard let json = try JSONSerialization.jsonObject(with: data) as? JSONObject else { return }
+        guard let json = try? JSONSerialization.jsonObject(with: data) as? JSONObject else {
+          return completion(.failure(DecoyInterceptorError.couldNotParseToJSON))
+        }
         // Construct a GraphQLResponse using the operation and JSON body.
         let graphQLResponse = GraphQLResponse(operation: request.operation, body: json)
         // Parse the GraphQLResponse to get the result.
