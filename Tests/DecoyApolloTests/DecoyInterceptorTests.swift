@@ -114,6 +114,21 @@ final class DecoyInterceptorTests: XCTestCase {
     }
     wait(for: [exp], timeout: 1)
   }
+
+  func test_interceptAsync_shouldPassUpError_whenProceedAsyncFails() {
+    let exp = expectation(description: "Completion")
+    let queue = MockQueue()
+    Decoy.queue = queue
+
+    let mockChain = MockChain()
+    sut.interceptAsync(chain: mockChain, request: goodHTTPRequest, response: nil) { result in
+      if case .failure(let error) = result {
+        XCTAssert((error as? TestError) == TestError.generic)
+      }
+      exp.fulfill()
+    }
+    wait(for: [exp], timeout: 1)
+  }
 }
 
 private extension DecoyInterceptorTests {

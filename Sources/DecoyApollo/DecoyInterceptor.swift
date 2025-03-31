@@ -90,32 +90,34 @@ public class DecoyInterceptor: ApolloInterceptor {
     chain.proceedAsync(request: request, response: response, interceptor: self) { result in
       switch result {
       case .success(let graphQLResponse):
-        // If Decoy is in record mode, capture the live response.
-        if Decoy.mode() == .record {
-          // Convert the live response into JSON data.
-          guard let jsonData = try? JSONSerialization.data(withJSONObject: graphQLResponse.asJSONDictionary()) else {
-            return
-          }
-          // Attempt to parse an HTTPURLResponse from the GraphQLResponse.
-          let recordedResponse: HTTPURLResponse
-          if let liveResponse = response?.httpResponse as? HTTPURLResponse {
-            recordedResponse = liveResponse
-          } else {
-            // Fall back to a default response if none is available.
-            recordedResponse = HTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: nil)!
-          }
-          // Record the response.
-          Decoy.recorder.record(
-            url: url,
-            data: jsonData,
-            response: recordedResponse,
-            error: nil
-          )
+        guard Decoy.mode() == .record else {
+          return completion(.success(graphQLResponse))
         }
+
+        // Convert the live response into JSON data.
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: graphQLResponse.asJSONDictionary()) else {
+          return
+        }
+        // Attempt to parse an HTTPURLResponse from the GraphQLResponse.
+        let recordedResponse: HTTPURLResponse
+        if let liveResponse = response?.httpResponse as? HTTPURLResponse {
+          recordedResponse = liveResponse
+        } else {
+          // Fall back to a default response if none is available.
+          recordedResponse = HTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: nil)!
+        }
+        // Record the response.
+        Decoy.recorder.record(
+          url: url,
+          data: jsonData,
+          response: recordedResponse,
+          error: nil
+        )
+
         // Complete with the live response.
         completion(.success(graphQLResponse))
-      case .failure(let error):
-        // Complete with any errors encountered.
+    case .failure(let error):
+      // Complete with any errors encountered.
         completion(.failure(error))
       }
     }
