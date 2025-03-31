@@ -101,6 +101,19 @@ final class DecoyInterceptorTests: XCTestCase {
     }
     wait(for: [exp], timeout: 1)
   }
+
+  func test_interceptAsync_shouldProceedAsyncOnChain_whenStubDoesNotExist() {
+    let exp = expectation(description: "Completion")
+    let queue = MockQueue()
+    Decoy.queue = queue
+
+    let mockChain = MockChain()
+    sut.interceptAsync(chain: mockChain, request: goodHTTPRequest, response: nil) { _ in
+      XCTAssert(mockChain.didProceedAsync)
+      exp.fulfill()
+    }
+    wait(for: [exp], timeout: 1)
+  }
 }
 
 private extension DecoyInterceptorTests {
@@ -140,7 +153,15 @@ private class MockGraphQLOperation: GraphQLOperation {
 private class MockChain: RequestChain {
   func kickoff<Operation>(request: Apollo.HTTPRequest<Operation>, completion: @escaping (Result<Apollo.GraphQLResult<Operation.Data>, any Error>) -> Void) where Operation : ApolloAPI.GraphQLOperation {}
   func proceedAsync<Operation>(request: Apollo.HTTPRequest<Operation>, response: Apollo.HTTPResponse<Operation>?, completion: @escaping (Result<Apollo.GraphQLResult<Operation.Data>, any Error>) -> Void) where Operation : ApolloAPI.GraphQLOperation {}
-  func proceedAsync<Operation>(request: Apollo.HTTPRequest<Operation>, response: Apollo.HTTPResponse<Operation>?, interceptor: any Apollo.ApolloInterceptor, completion: @escaping (Result<Apollo.GraphQLResult<Operation.Data>, any Error>) -> Void) where Operation : ApolloAPI.GraphQLOperation {}
+
+  var didProceedAsync = false
+  func proceedAsync<Operation>(request: Apollo.HTTPRequest<Operation>, response: Apollo.HTTPResponse<Operation>?, interceptor: any Apollo.ApolloInterceptor, completion: @escaping (Result<Apollo.GraphQLResult<Operation.Data>, any Error>) -> Void) where Operation : ApolloAPI.GraphQLOperation {
+    didProceedAsync = true
+    completion(
+      .failure(TestError.generic)
+    )
+  }
+
   func cancel() {}
   func retry<Operation>(request: Apollo.HTTPRequest<Operation>, completion: @escaping (Result<Apollo.GraphQLResult<Operation.Data>, any Error>) -> Void) where Operation : ApolloAPI.GraphQLOperation {}
   func handleErrorAsync<Operation>(_ error: any Error, request: Apollo.HTTPRequest<Operation>, response: Apollo.HTTPResponse<Operation>?, completion: @escaping (Result<Apollo.GraphQLResult<Operation.Data>, any Error>) -> Void) where Operation : ApolloAPI.GraphQLOperation {}
@@ -184,4 +205,8 @@ class MockQueue: QueueInterface {
     guard !queuedResponses.isEmpty else { return nil }
     return queuedResponses.first { $0.key == url }?.value.first
   }
+}
+
+enum TestError: Error {
+  case generic
 }
