@@ -62,9 +62,13 @@ public enum Decoy {
   /// - Parameter processInfo: The ProcessInfo to inspect.
   /// - Returns: The Decoy mode based on the environment variable, defaulting to `.liveIfUnmocked`.
   public static func mode(for processInfo: ProcessInfo = .processInfo) -> Decoy.Mode {
-    log.log("Querying mode!!")
     guard let modeString = processInfo.environment[Constants.mode] else { return .liveIfUnmocked }
     return Decoy.Mode(rawValue: modeString) ?? .liveIfUnmocked
+  }
+
+  /// Write to disk all recordings from the recorder.
+  public static func writeRecordings() {
+    recorder.flush()
   }
 
   /// Sets up Decoy by loading mocks from disk and queuing them for later use.
