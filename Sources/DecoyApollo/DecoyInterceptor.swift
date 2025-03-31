@@ -18,15 +18,7 @@ public class DecoyInterceptor: ApolloInterceptor {
   ) where Operation : ApolloAPI.GraphQLOperation {
     // Convert Apollo's HTTPRequest to a URLRequest so we can extract the URL.
     guard let urlRequest = try? request.toURLRequest(), let url = urlRequest.url else {
-      completion(
-        .failure(
-          NSError(
-            domain: "DecoyGraphQLInterceptor",
-            code: -1,
-            userInfo: [NSLocalizedDescriptionKey: "Invalid URLRequest."]
-          )
-        )
-      )
+      completion(.failure(NSError(domain: "DecoyInterceptor", code: -1, userInfo: [NSLocalizedDescriptionKey: "Bad request."])))
       return
     }
 
@@ -34,11 +26,10 @@ public class DecoyInterceptor: ApolloInterceptor {
     if let stubResponse = Decoy.queue.nextQueuedResponse(for: url) {
       do {
         // Convert the stored stub data to a GraphQLResponse.
-        guard let data = stubResponse.data else { fatalError("No data.") }
-        guard let json = try JSONSerialization.jsonObject(with: data) as? JSONObject else { fatalError("Bad data.") }
+        guard let data = stubResponse.data else { return }
+        guard let json = try JSONSerialization.jsonObject(with: data) as? JSONObject else { return }
         let graphQLResponse = GraphQLResponse(operation: request.operation, body: json)
         let (result, _) = try graphQLResponse.parseResult()
-        print("DecoyGraphQLInterceptor: Returning stubbed response for \(url.absoluteString)")
         completion(.success(result))
         return
       } catch {
@@ -53,7 +44,6 @@ public class DecoyInterceptor: ApolloInterceptor {
       case .success(let graphQLResponse):
         if Decoy.mode() == .record {
           guard let jsonData = try? JSONSerialization.data(withJSONObject: graphQLResponse.asJSONDictionary()) else {
-            print("FAIL")
             return
           }
 
@@ -68,7 +58,6 @@ public class DecoyInterceptor: ApolloInterceptor {
             ),
             error: nil
           )
-          print("DecoyGraphQLInterceptor: Recorded live response for \(url.absoluteString)")
         }
         completion(.success(graphQLResponse))
 

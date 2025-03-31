@@ -2,9 +2,9 @@
 import Foundation
 
 class MockWriter: WriterInterface {
-  var writeWasCalled = false
+  var appendWasCalled = false
 
-  func write(recordings: [[String: Any]]) {
-    writeWasCalled = true
+  func append(recording: [String : Any]) throws {
+    appendWasCalled = true
   }
 }
