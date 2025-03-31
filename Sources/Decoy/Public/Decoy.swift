@@ -6,8 +6,8 @@ import Foundation
 /// real network calls.
 ///
 /// Decoy works by loading mocks from disk (via a Loader), queuing them for later retrieval,
-/// and using a custom URLProtocol (DecoyURLProtocol) to intercept requests and return either
-/// the queued mock or a live response (depending on the operating mode).
+/// and using either a custom URLProtocol, Apollo interceptors, or another network interception mechanism
+/// to intercept requests and return either the queued mock or a live response (depending on the operating mode).
 public enum Decoy {
   /// Constants used throughout the Decoy framework.
   public struct Constants {
@@ -36,8 +36,8 @@ public enum Decoy {
 
   /// The queue that stores mocked responses.
   ///
-  /// Mocks are enqueued as `Stub` objects keyed by their URL, allowing DecoyURLProtocol to retrieve
-  /// and return the appropriate mock for a given request.
+  /// Mocks are enqueued as `Stub` objects keyed by their URL, allowing Decoy's interception
+  /// mechanisms to retrieve and return the appropriate mock for a given request.
   public static var queue: QueueInterface = Queue()
 
   /// The loader used to read mocks from a JSON file.
@@ -47,9 +47,7 @@ public enum Decoy {
   static var loader: LoaderInterface = Loader()
 
   /// The log used to print debug statements that can be read while running tests.
-  ///
   static var log = Log()
-
 
   /// The recorder that writes out live network responses.
   ///
@@ -57,7 +55,7 @@ public enum Decoy {
   /// used as mocks in future test runs.
   public static var recorder: RecorderInterface = Recorder()
 
-  /// Helper to determine the mode from a given ProcessInfo.
+  /// Helper to determine the operating mode from a given ProcessInfo.
   ///
   /// - Parameter processInfo: The ProcessInfo to inspect.
   /// - Returns: The Decoy mode based on the environment variable, defaulting to `.liveIfUnmocked`.
@@ -102,14 +100,15 @@ public enum Decoy {
     print("Decoy.setUp: Loaded and queued \(stubs.count) mocks from \(url.absoluteString)")
   }
 
-  /// Returns a URLSession configured to use DecoyURLProtocol.
+  /// Returns a URLSession configured to intercept network requests.
   ///
   /// When running in UI tests, your app should use this session so that all network requests
-  /// are intercepted by DecoyURLProtocol, allowing mock responses to be returned or live responses
-  /// to be recorded as needed.
+  /// are intercepted by Decoy's interception mechanisms - whether that is via a custom URLProtocol,
+  /// Apollo interceptors, or another approach - ensuring that mock responses are returned or live
+  /// responses are recorded as needed.
   public static var urlSession: URLSession {
     let config = URLSessionConfiguration.default
-    // Prepend DecoyURLProtocol so that it intercepts requests.
+    // Prepend Decoy's interception mechanism (e.g., DecoyURLProtocol) to intercept requests.
     config.protocolClasses = [DecoyURLProtocol.self] + (config.protocolClasses ?? [])
     return URLSession(configuration: config)
   }
