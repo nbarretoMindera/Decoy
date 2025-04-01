@@ -19,11 +19,11 @@ public final class DecoyLogStream {
     let descriptor = handle.fileDescriptor
     source = DispatchSource.makeFileSystemObjectSource(fileDescriptor: descriptor, eventMask: .write, queue: .main)
 
+
     source?.setEventHandler { [weak self] in
-      guard let self = self else { return }
       let data = handle.availableData
       guard let text = String(data: data, encoding: .utf8), !text.isEmpty else { return }
-      XCTContext.runActivity(named: "🦆 Decoy: \(text)") { _ in }
+      XCTContext.runActivity(named: "🦆 Decoy: \(text.trimmingCharacters(in: .newlines))") { _ in }
     }
 
     source?.setCancelHandler { [weak self] in

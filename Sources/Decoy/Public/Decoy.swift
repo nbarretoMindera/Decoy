@@ -100,8 +100,6 @@ public enum Decoy {
     stubs.forEach { stub in
       queue.queue(stub: stub)
     }
-
-    log("Decoy.setUp: Loaded and queued \(stubs.count) mocks from \(url.absoluteString)")
   }
 
   /// Returns a URLSession configured to intercept network requests.
