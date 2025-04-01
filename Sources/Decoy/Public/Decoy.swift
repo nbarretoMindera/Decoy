@@ -49,9 +49,9 @@ public enum Decoy {
   /// The log used to print debug statements that can be read while running tests in a separate sandbox.
   public static var logger: LoggerProtocol = Logger()
 
-  public static func log(_ message: String) {
-    logger.log(message)
-  }
+  public static func logInfo(_ message: String) { logger.info(message) }
+  public static func logWarning(_ message: String) { logger.warning(message) }
+  public static func logError(_ message: String) { logger.error(message) }
 
   /// The recorder that writes out live network responses.
   ///
@@ -82,7 +82,7 @@ public enum Decoy {
     // Retrieve the directory and filename for the mocks from environment variables.
     guard let directory = processInfo.environment[Constants.mockDirectory],
           let filename = processInfo.environment[Constants.mockFilename] else {
-      log("Decoy.setUp: Missing environment variables for mock directory or filename.")
+      logError("setUp: Missing environment variables for mock directory or filename.")
       return
     }
 
@@ -92,13 +92,14 @@ public enum Decoy {
 
     // Load the mocks from the JSON file.
     guard let stubs = loader.loadJSON(from: url) else {
-      log("Decoy.setUp: Failed to load mocks from \(url.absoluteString)")
+      logError("setUp: Failed to load mocks.")
       return
     }
 
     // Queue each loaded stub for later retrieval.
     stubs.forEach { stub in
       queue.queue(stub: stub)
+      logInfo("setUp: Stub loaded for \(stub.url)")
     }
   }
 

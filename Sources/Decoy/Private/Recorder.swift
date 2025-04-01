@@ -83,7 +83,7 @@ public class Recorder: RecorderInterface {
       )
       // Immediately append the new recording to the file using the shared writer.
       try? self.writer.append(recording: stub.asJSON)
-      Decoy.log("Recorded: \(stub.url)")
+      Decoy.logInfo("Recorded: \(stub.url)")
     }
   }
 }
