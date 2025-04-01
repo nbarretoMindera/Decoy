@@ -87,7 +87,7 @@ class Writer: WriterInterface {
 
       // Write the JSON data to disk, overwriting the file.
       try jsonData.write(to: url)
-      Decoy.logInfo("writer: Writing recording.")
+      Decoy.logInfo("Wrote recording for \(recording["url"])")
     }
   }
 }

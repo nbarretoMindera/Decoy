@@ -24,19 +24,19 @@ public struct Logger: LoggerProtocol {
   /// Logs an informational message.
   /// - Parameter message: The message to log.
   public func info(_ message: String) {
-    write("🦆 Decoy Info: ", message)
+    write("🦆 Decoy:", message)
   }
 
   /// Logs a warning message.
   /// - Parameter message: The warning message to log.
   public func warning(_ message: String) {
-    write("⚠️ Decoy Warning: ", message)
+    write("⚠️ Decoy:", message)
   }
 
   /// Logs an error message.
   /// - Parameter message: The error message to log.
   public func error(_ message: String) {
-    write("❌ Decoy Error: ", message)
+    write("❌ Decoy:", message)
   }
 
   /// Writes a message with a prefix tag to the shared log file.
