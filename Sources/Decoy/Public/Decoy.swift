@@ -99,7 +99,7 @@ public enum Decoy {
     // Queue each loaded stub for later retrieval.
     stubs.forEach { stub in
       queue.queue(stub: stub)
-      logInfo("setUp: Queued decoy for \(stub.url)")
+      logInfo("setUp: Queued decoy for \(stub.identifier)")
     }
   }
 

@@ -12,11 +12,11 @@ public protocol RecorderInterface {
   /// Records a network request and its associated response.
   ///
   /// - Parameters:
-  ///   - url: The `URL` associated with the network request.
+  ///   - identifierurl: The `Identifier` associated with the network request, either a URL or a GraphQL signature.
   ///   - data: The optional response data returned from the request.
   ///   - response: The optional `URLResponse` containing metadata such as status code.
   ///   - error: An optional `Error` encountered during the network call.
-  func record(url: URL, data: Data?, response: URLResponse?, error: Error?)
+  func record(identifier: Stub.Identifier, data: Data?, response: URLResponse?, error: Error?)
 }
 
 /// A concrete implementation of `RecorderInterface` that captures network requests
@@ -71,10 +71,10 @@ public class Recorder: RecorderInterface {
   ///   - response: The URLResponse containing metadata (e.g. status code) from the network call.
   ///   - error: An error encountered during the network call.
   ///            (Currently, error information is not recorded; you can extend this as needed.)
-  public func record(url: URL, data: Data?, response: URLResponse?, error: Error?) {
+  public func record(identifier: Stub.Identifier, data: Data?, response: URLResponse?, error: Error?) {
     localQueue.async {
       let stub = Stub(
-        url: url,
+        identifier: identifier,
         response: Stub.Response(
           data: data,
           urlResponse: response as? HTTPURLResponse,
@@ -83,7 +83,7 @@ public class Recorder: RecorderInterface {
       )
       // Immediately append the new recording to the file using the shared writer.
       try? self.writer.append(recording: stub.asJSON)
-      Decoy.logInfo("Recorded decoy for: \(url)")
+      Decoy.logInfo("Recorded decoy for: \(identifier.stringValue)")
     }
   }
 }

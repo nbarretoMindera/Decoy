@@ -36,7 +36,7 @@ final class DecoyInterceptorTests: XCTestCase {
     let exp = expectation(description: "Completion")
     let queue = MockQueue()
     queue.queuedResponses = [
-      URL(string: "https://totally.real/endpoint")!: [Stub.Response(data: nil, urlResponse: nil, error: nil)]
+      .url(URL(string: "https://totally.real/endpoint")!): [Stub.Response(data: nil, urlResponse: nil, error: nil)]
     ]
     Decoy.queue = queue
 
@@ -58,7 +58,7 @@ final class DecoyInterceptorTests: XCTestCase {
     let exp = expectation(description: "Completion")
     let queue = MockQueue()
     queue.queuedResponses = [
-      URL(string: "https://totally.real/endpoint")!: [Stub.Response(data: "🚽".data(using: .utf8), urlResponse: nil, error: nil)]
+      .url(URL(string: "https://totally.real/endpoint")!): [Stub.Response(data: "🚽".data(using: .utf8), urlResponse: nil, error: nil)]
     ]
     Decoy.queue = queue
 
@@ -80,7 +80,7 @@ final class DecoyInterceptorTests: XCTestCase {
     let exp = expectation(description: "Completion")
     let queue = MockQueue()
     queue.queuedResponses = [
-      URL(string: "https://totally.real/endpoint")!: [Stub.Response(
+      .url(URL(string: "https://totally.real/endpoint")!): [Stub.Response(
         data: "{\"data\": {\"a\": \"b\"}}".data(using: .utf8),
         urlResponse: nil,
         error: nil
@@ -214,11 +214,11 @@ class BadHTTPRequest<Operation: GraphQLOperation>: Apollo.HTTPRequest<Operation>
 }
 
 class MockQueue: QueueInterface {
-  var queuedResponses: [URL : [Stub.Response]] = [:]
+  var queuedResponses: [Stub.Identifier : [Stub.Response]] = [:]
   func queue(stub: Stub) {}
   func nextQueuedResponse(for url: URL) -> Stub.Response? {
     guard !queuedResponses.isEmpty else { return nil }
-    return queuedResponses.first { $0.key == url }?.value.first
+    return queuedResponses.first { $0.key.stringValue == url.absoluteString }?.value.first
   }
 }
 

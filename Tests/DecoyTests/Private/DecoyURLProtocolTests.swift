@@ -47,7 +47,7 @@ class DecoyURLProtocolTests: XCTestCase {
     let expectedResponse = HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil)
     let stubResponse = Stub.Response(data: expectedData, urlResponse: expectedResponse, error: nil)
 
-    Decoy.queue.queuedResponses[url] = [stubResponse]
+    Decoy.queue.queuedResponses[.url(url)] = [stubResponse]
 
     let testRecorder = Decoy.recorder as! MockRecorder
     testRecorder.mockedShouldRecord = true
@@ -74,7 +74,7 @@ class DecoyURLProtocolTests: XCTestCase {
     let request = URLRequest(url: url)
     setenv(decoyModeKey, "forceOffline", 1)
 
-    Decoy.queue.queuedResponses[url] = nil
+    Decoy.queue.queuedResponses[.url(url)] = nil
 
     let client = FakeURLProtocolClient()
     let protocolInstance = DecoyURLProtocol(request: request, cachedResponse: nil, client: client)

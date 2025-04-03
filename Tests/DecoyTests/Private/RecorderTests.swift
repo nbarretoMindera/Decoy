@@ -40,7 +40,7 @@ final class RecorderTests: XCTestCase {
 
     let expectation = XCTestExpectation(description: "Record completes")
 
-    recorder.record(url: testURL, data: nil, response: nil, error: nil)
+    recorder.record(identifier: .url(testURL), data: nil, response: nil, error: nil)
 
     // Wait briefly for the asynchronous call to complete.
     DispatchQueue.global().asyncAfter(deadline: .now() + 0.1) {
@@ -59,9 +59,9 @@ final class RecorderTests: XCTestCase {
 
     let expectation = XCTestExpectation(description: "Multiple records complete")
 
-    recorder.record(url: testURL, data: nil, response: nil, error: nil)
-    recorder.record(url: testURL, data: nil, response: nil, error: nil)
-    recorder.record(url: testURL, data: nil, response: nil, error: nil)
+    recorder.record(identifier: .url(testURL), data: nil, response: nil, error: nil)
+    recorder.record(identifier: .url(testURL), data: nil, response: nil, error: nil)
+    recorder.record(identifier: .url(testURL), data: nil, response: nil, error: nil)
 
     DispatchQueue.global().asyncAfter(deadline: .now() + 0.2) {
       XCTAssertEqual(mockWriter.appendedRecordings.count, 3)
@@ -80,7 +80,7 @@ final class RecorderTests: XCTestCase {
     let data = try? JSONSerialization.data(withJSONObject: jsonObject)
     let response = HTTPURLResponse(url: url, statusCode: 123, httpVersion: nil, headerFields: nil)
 
-    recorder.record(url: url, data: data, response: response, error: TestError.generic)
+    recorder.record(identifier: .url(url), data: data, response: response, error: TestError.generic)
 
     let expectation = XCTestExpectation(description: "Record valid stub")
 
@@ -90,7 +90,7 @@ final class RecorderTests: XCTestCase {
       }
 
       // Verify the URL is correctly recorded.
-      XCTAssertEqual(recording["url"] as? String, url.absoluteString)
+      XCTAssertEqual(recording["identifier"] as? String, url.absoluteString)
 
       // Verify the mock details.
       guard let mock = recording["mock"] as? [String: Any] else {
@@ -121,7 +121,7 @@ final class RecorderTests: XCTestCase {
 
     let expectation = XCTestExpectation(description: "Record calls writer")
 
-    recorder.record(url: testURL, data: nil, response: nil, error: nil)
+    recorder.record(identifier: .url(testURL), data: nil, response: nil, error: nil)
 
     DispatchQueue.global().asyncAfter(deadline: .now() + 0.1) {
       XCTAssertTrue(mockWriter.appendWasCalled)

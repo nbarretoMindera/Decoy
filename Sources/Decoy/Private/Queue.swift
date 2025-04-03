@@ -9,7 +9,7 @@ public protocol QueueInterface {
   ///
   /// Each URL key is associated with an array of `Stub.Response` objects,
   /// which are returned in a last-in, first-out (LIFO) order when requested.
-  var queuedResponses: [URL: [Stub.Response]] { get set }
+  var queuedResponses: [Stub.Identifier: [Stub.Response]] { get set }
 
   /// Enqueues a mocked response for a specific URL.
   ///
@@ -33,7 +33,7 @@ public class Queue: QueueInterface {
   ///
   /// Each URL key stores an array of responses, where the most recent response (inserted last)
   /// is returned first when requested.
-  public var queuedResponses = [URL: [Stub.Response]]()
+  public var queuedResponses = [Stub.Identifier: [Stub.Response]]()
 
   /// Enqueues a mocked response for a specific URL.
   ///
@@ -41,11 +41,11 @@ public class Queue: QueueInterface {
   ///   If no responses exist for that URL, an array is created, and then the response is inserted
   ///   at the beginning of the array to maintain a LIFO order.
   public func queue(stub: Stub) {
-    if queuedResponses[stub.url] == nil {
-      queuedResponses[stub.url] = []
+    if queuedResponses[stub.identifier] == nil {
+      queuedResponses[stub.identifier] = []
     }
     // Insert the new response at the beginning to maintain LIFO order.
-    queuedResponses[stub.url]?.insert(stub.response, at: 0)
+    queuedResponses[stub.identifier]?.insert(stub.response, at: 0)
   }
 
   /// Synchronously retrieves and removes the next queued response for a given URL.
@@ -56,7 +56,7 @@ public class Queue: QueueInterface {
   /// This method removes and returns the last element of the array for the specified URL,
   /// which corresponds to the most recently added response.
   public func nextQueuedResponse(for url: URL) -> Stub.Response? {
-    if let stub = queuedResponses[url]?.popLast() {
+    if let stub = queuedResponses[.url(url)]?.popLast() {
       Decoy.logInfo("Providing decoy for \(url)")
       return stub
     } else {

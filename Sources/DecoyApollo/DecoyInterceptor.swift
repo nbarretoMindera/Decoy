@@ -108,7 +108,7 @@ public class DecoyInterceptor: ApolloInterceptor {
         }
         // Record the response.
         Decoy.recorder.record(
-          url: url,
+          identifier: .url(url),
           data: jsonData,
           response: recordedResponse,
           error: nil

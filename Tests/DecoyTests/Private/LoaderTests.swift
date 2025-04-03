@@ -29,7 +29,7 @@ final class LoaderTests: XCTestCase {
   func test_loadJSON_shouldReturnParsedData() {
     guard let url = Bundle.testing("LoaderTest.json") else { return XCTFail(#function) }
     let result = loader.loadJSON(from: url)
-    XCTAssertEqual(result![0].url.absoluteString, "https://testing-some-json")
+    XCTAssertEqual(result![0].identifier.stringValue, "https://testing-some-json")
 
     guard let expectedResult = try? JSONSerialization.data(withJSONObject: ["MOCKED OR WHATEVER"]) else {
       return XCTFail(#function)

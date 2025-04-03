@@ -73,7 +73,7 @@ private extension Loader {
     let urlResponse = urlResponse(to: url, from: mock)
     let response = Stub.Response(data: data, urlResponse: urlResponse, error: error(from: mock))
 
-    return Stub(url: url, response: response)
+    return Stub(identifier: .url(url), response: response)
   }
 
   /// Extracts response data from a mock dictionary.

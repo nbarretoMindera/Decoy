@@ -71,7 +71,7 @@ private extension DecoyURLProtocol {
       }
 
       if Decoy.recorder.shouldRecord {
-        Decoy.recorder.record(url: url, data: mockResponse.data, response: mockResponse.urlResponse, error: nil)
+        Decoy.recorder.record(identifier: .url(url), data: mockResponse.data, response: mockResponse.urlResponse, error: nil)
       }
 
       client?.urlProtocolDidFinishLoading(self)
@@ -106,7 +106,7 @@ private extension DecoyURLProtocol {
           self.client?.urlProtocol(self, didLoad: data)
         }
         if Decoy.mode() == .record, Decoy.recorder.shouldRecord {
-          Decoy.recorder.record(url: url, data: data, response: response, error: error)
+          Decoy.recorder.record(identifier: .url(url), data: data, response: response, error: error)
         }
         self.client?.urlProtocolDidFinishLoading(self)
       }
