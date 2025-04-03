@@ -87,8 +87,8 @@ class Writer: WriterInterface {
 
       // Write the JSON data to disk, overwriting the file.
       try jsonData.write(to: url)
-      if let recordingUrl = recording["url"] {
-        Decoy.logInfo("Wrote recording for \(recordingUrl)")
+      if let recordingIdentifier = recording["identifier"] as? String {
+        Decoy.logInfo("Wrote recording for \(recordingIdentifier)")
       }
     }
   }

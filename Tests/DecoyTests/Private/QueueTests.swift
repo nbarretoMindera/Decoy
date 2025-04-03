@@ -57,22 +57,22 @@ final class QueueTests: XCTestCase {
   }
 
   func test_dispatchNextQueuedResponse_shouldReturnNil_whenURLHasNoQueuedResponses() {
-    XCTAssertNil(queue.nextQueuedResponse(for: url))
+    XCTAssertNil(queue.nextQueuedResponse(for: .url(url)))
   }
 
   func test_dispatchNextQueuedResponse_shouldReturnNonNil_whenURLHasQueuedResponses() {
     queue.queue(stub: Stub(identifier: .url(url), response: emptyResponse))
-    XCTAssertNotNil(queue.nextQueuedResponse(for: url))
+    XCTAssertNotNil(queue.nextQueuedResponse(for: .url(url)))
   }
 
   func test_dispatchNextQueuedResponse_shouldReturnTrue_multipleTimes_thenFalse() {
     queue.queue(stub: Stub(identifier: .url(url), response: emptyResponse))
     queue.queue(stub: Stub(identifier: .url(url), response: emptyResponse))
     queue.queue(stub: Stub(identifier: .url(url), response: emptyResponse))
-    XCTAssertNotNil(queue.nextQueuedResponse(for: url))
-    XCTAssertNotNil(queue.nextQueuedResponse(for: url))
-    XCTAssertNotNil(queue.nextQueuedResponse(for: url))
-    XCTAssertNil(queue.nextQueuedResponse(for: url))
+    XCTAssertNotNil(queue.nextQueuedResponse(for: .url(url)))
+    XCTAssertNotNil(queue.nextQueuedResponse(for: .url(url)))
+    XCTAssertNotNil(queue.nextQueuedResponse(for: .url(url)))
+    XCTAssertNil(queue.nextQueuedResponse(for: .url(url)))
   }
 
   var url: URL {

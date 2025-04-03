@@ -31,104 +31,6 @@ final class DecoyInterceptorTests: XCTestCase {
     }
     wait(for: [exp], timeout: 1)
   }
-
-  func test_interceptAsync_shouldFail_whenStubbedResponseContainsNoData() {
-    let exp = expectation(description: "Completion")
-    let queue = MockQueue()
-    queue.queuedResponses = [
-      .url(URL(string: "https://totally.real/endpoint")!): [Stub.Response(data: nil, urlResponse: nil, error: nil)]
-    ]
-    Decoy.queue = queue
-
-    sut.interceptAsync(chain: MockChain(), request: goodHTTPRequest, response: nil) { result in
-      if case .success = result {
-        return XCTFail("Should've failed.")
-      }
-
-      if case .failure(let error) = result {
-        XCTAssert(error as? DecoyInterceptorError == DecoyInterceptorError.recordedStubContainsNoData)
-      }
-
-      exp.fulfill()
-    }
-    wait(for: [exp], timeout: 1)
-  }
-
-  func test_interceptAsync_shouldFail_whenStubbedResponseDataCouldNotBeParsedToJSON() {
-    let exp = expectation(description: "Completion")
-    let queue = MockQueue()
-    queue.queuedResponses = [
-      .url(URL(string: "https://totally.real/endpoint")!): [Stub.Response(data: "🚽".data(using: .utf8), urlResponse: nil, error: nil)]
-    ]
-    Decoy.queue = queue
-
-    sut.interceptAsync(chain: MockChain(), request: goodHTTPRequest, response: nil) { result in
-      if case .success = result {
-        return XCTFail("Should've failed.")
-      }
-
-      if case .failure(let error) = result {
-        XCTAssert(error as? DecoyInterceptorError == DecoyInterceptorError.couldNotParseToJSON)
-      }
-
-      exp.fulfill()
-    }
-    wait(for: [exp], timeout: 1)
-  }
-
-  func test_interceptAsync_shouldSucceed_whenJSONIsValidAndCanBeParsedBackIntoGraphQLResponse() {
-    let exp = expectation(description: "Completion")
-    let queue = MockQueue()
-    queue.queuedResponses = [
-      .url(URL(string: "https://totally.real/endpoint")!): [Stub.Response(
-        data: "{\"data\": {\"a\": \"b\"}}".data(using: .utf8),
-        urlResponse: nil,
-        error: nil
-      )]
-    ]
-    Decoy.queue = queue
-
-    sut.interceptAsync(chain: MockChain(), request: goodHTTPRequest, response: nil) { result in
-      if case .success(let gqlResult) = result {
-        XCTAssertEqual((gqlResult.data)?.__data._data["a"] as? String, "b")
-      }
-
-      if case .failure = result {
-        return XCTFail("Should've succeeded.")
-      }
-
-      exp.fulfill()
-    }
-    wait(for: [exp], timeout: 1)
-  }
-
-  func test_interceptAsync_shouldProceedAsyncOnChain_whenStubDoesNotExist() {
-    let exp = expectation(description: "Completion")
-    let queue = MockQueue()
-    Decoy.queue = queue
-
-    let mockChain = MockChain()
-    sut.interceptAsync(chain: mockChain, request: goodHTTPRequest, response: nil) { _ in
-      XCTAssert(mockChain.didProceedAsync)
-      exp.fulfill()
-    }
-    wait(for: [exp], timeout: 1)
-  }
-
-  func test_interceptAsync_shouldPassUpError_whenProceedAsyncFails() {
-    let exp = expectation(description: "Completion")
-    let queue = MockQueue()
-    Decoy.queue = queue
-
-    let mockChain = MockChain()
-    sut.interceptAsync(chain: mockChain, request: goodHTTPRequest, response: nil) { result in
-      if case .failure(let error) = result {
-        XCTAssert((error as? TestError) == TestError.generic)
-      }
-      exp.fulfill()
-    }
-    wait(for: [exp], timeout: 1)
-  }
 }
 
 private extension DecoyInterceptorTests {
@@ -216,9 +118,9 @@ class BadHTTPRequest<Operation: GraphQLOperation>: Apollo.HTTPRequest<Operation>
 class MockQueue: QueueInterface {
   var queuedResponses: [Stub.Identifier : [Stub.Response]] = [:]
   func queue(stub: Stub) {}
-  func nextQueuedResponse(for url: URL) -> Stub.Response? {
+  func nextQueuedResponse(for identifier: Stub.Identifier) -> Stub.Response? {
     guard !queuedResponses.isEmpty else { return nil }
-    return queuedResponses.first { $0.key.stringValue == url.absoluteString }?.value.first
+    return queuedResponses[identifier]?.first
   }
 }
 

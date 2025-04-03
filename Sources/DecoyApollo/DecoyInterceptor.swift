@@ -57,13 +57,13 @@ public class DecoyInterceptor: ApolloInterceptor {
   ) where Operation : ApolloAPI.GraphQLOperation {
 
     // Convert Apollo's HTTPRequest to a URLRequest to extract the URL.
-    guard let urlRequest = try? request.toURLRequest(), let url = urlRequest.url else {
+    guard let urlRequest = try? request.toURLRequest(), let signature = try? GraphQLSignature(urlRequest: urlRequest) else {
       completion(.failure(NSError(domain: "DecoyInterceptor", code: -1, userInfo: [NSLocalizedDescriptionKey: "Bad request."])))
       return
     }
 
     // Check the Decoy queue for a stubbed response corresponding to the URL.
-    if let stubResponse = Decoy.queue.nextQueuedResponse(for: url) {
+    if let stubResponse = Decoy.queue.nextQueuedResponse(for: .signature(signature)) {
       do {
         // Ensure the stub response contains data.
         guard let data = stubResponse.data else {
@@ -105,9 +105,8 @@ public class DecoyInterceptor: ApolloInterceptor {
         if let liveResponse = response?.httpResponse as? HTTPURLResponse {
           recordedResponse = liveResponse
         } else {
-          // Fall back to a default response if none is available.
           // TODO: Should we throw an error here / complete with failure instead?
-          recordedResponse = HTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: nil)!
+          recordedResponse = HTTPURLResponse(url: signature.endpoint, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: nil)!
         }
 
         // Generate a signature for the response so that we can access it later.

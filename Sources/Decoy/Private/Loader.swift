@@ -20,8 +20,10 @@ private typealias StubArray = [StubDictionary]
 struct Loader: LoaderInterface {
   /// Constants used to parse JSON keys when decoding mocked responses.
   struct Constants {
-    /// The key for retrieving the URL from the JSON.
-    static let url = "url"
+    /// The key for retrieving the Identifier from the JSON.
+    static let identifier = "identifier"
+    /// The key for retrieving the type of Stub (URL or Signature) from the JSON.
+    static let type = "type"
     /// The key for retrieving the mock response dictionary.
     static let mock = "mock"
     /// The key for retrieving JSON response data.
@@ -65,15 +67,22 @@ private extension Loader {
   /// - The `url` of the request.
   /// - The mock response details (`data`, `urlResponse`, `error`).
   func stub(from json: [String: Any]) -> Stub? {
-    guard let urlString = json[Constants.url] as? String else { return nil }
-    guard let url = URL(string: urlString) else { return nil }
+    guard let id = Stub.Identifier(json: json) else { return nil }
     guard let mock = json[Constants.mock] as? StubDictionary else { return nil }
 
-    let data = data(from: mock)
-    let urlResponse = urlResponse(to: url, from: mock)
-    let response = Stub.Response(data: data, urlResponse: urlResponse, error: error(from: mock))
-
-    return Stub(identifier: .url(url), response: response)
+    if case .url(let url) = id {
+      let data = data(from: mock)
+      let urlResponse = urlResponse(to: url, from: mock)
+      let response = Stub.Response(data: data, urlResponse: urlResponse, error: error(from: mock))
+      return Stub(identifier: .url(url), response: response)
+    } else if case .signature(let signature) = id {
+      let data = data(from: mock)
+      let urlResponse = urlResponse(to: signature.endpoint, from: mock)
+      let response = Stub.Response(data: data, urlResponse: urlResponse, error: error(from: mock))
+      return Stub(identifier: .signature(signature), response: response)
+    } else {
+      return nil
+    }
   }
 
   /// Extracts response data from a mock dictionary.

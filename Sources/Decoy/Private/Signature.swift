@@ -1,31 +1,58 @@
 import Foundation
 
-public struct GraphQLSignature: Hashable, CustomStringConvertible {
+public struct GraphQLSignature: Codable, CustomStringConvertible, Hashable {
   public let operationName: String
   public let query: String
-  public let variables: [String: AnyHashable]
+  public let endpoint: URL
+  public let variables: [String: JSONValue]
 
   public var description: String {
-    let querySummary = query.replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
-      .prefix(60)
-    return "\(operationName)-\(querySummary)...-vars:\(variables.hashValue)"
+    let summary = query.replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression).prefix(60)
+    return "\(operationName)-\(summary)...-vars:\(variables.hashValue)"
   }
 
   public init(urlRequest: URLRequest) throws {
-    guard let body = urlRequest.httpBody,
-          let json = try JSONSerialization.jsonObject(with: body) as? [String: Any],
-          let query = json["query"] as? String else {
-      throw DecoyError.invalidGraphQLRequest
-    }
+    guard let body = urlRequest.httpBody else { throw DecoyError.invalidGraphQLRequest }
+    guard let json = try JSONSerialization.jsonObject(with: body) as? [String: Any] else { throw DecoyError.invalidGraphQLRequest }
+    guard let query = json["query"] as? String else { throw DecoyError.invalidGraphQLRequest }
+    guard let endpoint = urlRequest.url else { throw DecoyError.invalidGraphQLRequest }
 
-    let opName = json["operationName"] as? String ?? "Unnamed"
     let vars = json["variables"] as? [String: Any] ?? [:]
-
-    self.operationName = opName
+    self.endpoint = endpoint
+    self.operationName = json["operationName"] as? String ?? "Unnamed"
     self.query = query
       .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
       .trimmingCharacters(in: .whitespacesAndNewlines)
-    self.variables = vars.mapValues { $0 as? AnyHashable ?? "\($0)" as AnyHashable }
+
+    // Convert variables to JSONValue
+    var convertedVars = [String: JSONValue]()
+    for (key, value) in vars {
+      if let jsonValue = JSONValue.from(any: value) {
+        convertedVars[key] = jsonValue
+      }
+    }
+    self.variables = convertedVars
+  }
+
+  public init?(json: [String: Any]) {
+    guard let operationName = json["operationName"] as? String,
+          let query = json["query"] as? String,
+          let endpoint = json["endpoint"] as? String,
+          let endpointUrl = URL(string: endpoint) else { return nil }
+    let vars = json["variables"] as? [String: Any] ?? [:]
+    var variablesConverted = [String: JSONValue]()
+    for (key, value) in vars {
+      if let jsonValue = JSONValue.from(any: value) {
+        variablesConverted[key] = jsonValue
+      } else {
+        // You can decide how to handle values that cannot be converted.
+        variablesConverted[key] = .null
+      }
+    }
+    self.endpoint = endpointUrl
+    self.operationName = operationName
+    self.query = query
+    self.variables = variablesConverted
   }
 }
 

@@ -62,7 +62,7 @@ private extension DecoyURLProtocol {
   /// - Parameter url: The URL for which to check for a queued mock.
   /// - Returns: `true` if a mock response was found and handled; otherwise, `false`.
   func handleMockResponse(for url: URL) -> Bool {
-    if let mockResponse = Decoy.queue.nextQueuedResponse(for: url) {
+    if let mockResponse = Decoy.queue.nextQueuedResponse(for: .url(url)) {
       if let data = mockResponse.data {
         client?.urlProtocol(self, didLoad: data)
       }

@@ -1,5 +1,6 @@
 [
   {
+    "type": "url",
     "url": "https://testing-some-json",
     "mock": {
       "json": [

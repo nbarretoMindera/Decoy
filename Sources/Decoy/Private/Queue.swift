@@ -21,7 +21,7 @@ public protocol QueueInterface {
   ///
   /// - Parameter url: The URL for which to retrieve the next mocked response.
   /// - Returns: An optional `Stub.Response` if one exists in the queue; otherwise, `nil`.
-  func nextQueuedResponse(for url: URL) -> Stub.Response?
+  func nextQueuedResponse(for identifier: Stub.Identifier) -> Stub.Response?
 }
 
 /// A class responsible for managing a queue of mocked responses.
@@ -55,12 +55,24 @@ public class Queue: QueueInterface {
   ///
   /// This method removes and returns the last element of the array for the specified URL,
   /// which corresponds to the most recently added response.
-  public func nextQueuedResponse(for url: URL) -> Stub.Response? {
-    if let stub = queuedResponses[.url(url)]?.popLast() {
-      Decoy.logInfo("Providing decoy for \(url)")
-      return stub
+  public func nextQueuedResponse(for identifier: Stub.Identifier) -> Stub.Response? {
+    if case .url(let url) = identifier {
+      if let stub = queuedResponses[.url(url)]?.popLast() {
+        Decoy.logInfo("Providing decoy for \(url)")
+        return stub
+      } else {
+        Decoy.logWarning("No decoy was queued for \(url)")
+        return nil
+      }
+    } else if case .signature(let graphQLSignature) = identifier {
+      if let stub = queuedResponses[.signature(graphQLSignature)]?.popLast() {
+        Decoy.logInfo("Providing decoy for \(graphQLSignature)")
+        return stub
+      } else {
+        Decoy.logWarning("No decoy was queued for \(graphQLSignature)")
+        return nil
+      }
     } else {
-      Decoy.logWarning("No decoy was queued for \(url)")
       return nil
     }
   }

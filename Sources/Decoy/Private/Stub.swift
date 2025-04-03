@@ -6,6 +6,23 @@ public struct Stub {
     case url(URL)
     case signature(GraphQLSignature)
 
+    init?(json: [String: Any]) {
+      guard let type = json["type"] as? String else { return nil }
+
+      switch type {
+      case "url":
+        guard let urlString = json["url"] as? String else { return nil }
+        guard let url = URL(string: urlString) else { return nil }
+        self = .url(url)
+      case "signature":
+        guard let signatureJSON = json["identifier"] as? [String: Any] else { return nil }
+        guard let signature = GraphQLSignature(json: signatureJSON) else { return nil }
+        self = .signature(signature)
+      default:
+        return nil
+      }
+    }
+
     var stringValue: String {
       switch self {
       case .url(let url): url.absoluteString
@@ -35,11 +52,15 @@ public struct Stub {
     var jsonDict = [String: Any]()
 
     // Use the identifier's string representation.
+    if case .url = identifier {
+      jsonDict["type"] = "url"
+    } else {
+      jsonDict["type"] = "signature"
+    }
     jsonDict["identifier"] = identifier.stringValue
 
     var mock = [String: Any]()
-    if let data = response.data,
-       let jsonObj = try? JSONSerialization.jsonObject(with: data) {
+    if let data = response.data, let jsonObj = try? JSONSerialization.jsonObject(with: data) {
       mock["json"] = jsonObj
     }
     if let code = response.urlResponse?.statusCode {

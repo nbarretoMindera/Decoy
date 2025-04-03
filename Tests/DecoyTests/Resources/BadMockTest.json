@@ -1,5 +1,6 @@
 [
   {
+    "type": "url",
     "url": "https://a.b.c",
     "mock": {}
   }
