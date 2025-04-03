@@ -31,8 +31,17 @@ open class DecoyTestCase: XCTestCase {
     logStream = DecoyLogStream(testCase: self)
 
     // Ensure we have a directory to write stubs to.
-    guard let directory = buildDirectoryForStub(path: path, mode: mode) else {
+    guard let directory = buildDirectoryForStub(path: path) else {
       return XCTFail("Could not generate path to which to write stub.")
+    }
+
+    // If recording, wipe the previous mock file before making a new one.
+    if mode == .record {
+      guard let directory = buildDirectoryForStub(path: path) else {
+        return XCTFail("Record mode was specified, but could not clear existing decoys.")
+      }
+      let path = directory + "/\(mockName).json"
+      try? FileManager.default.removeItem(atPath: path)
     }
 
     // Configure and make the app available to tests.
@@ -50,7 +59,7 @@ open class DecoyTestCase: XCTestCase {
   /// 1. Converts the provided `path` into a `URL` (representing the test file's directory).
   /// 2. Appends `Decoy.Constants.mocksFolder` to define the mock storage location.
   /// 3. Returns the absolute string representation of the mock directory path.
-  private func buildDirectoryForStub(path: String, mode: Decoy.Mode) -> String? {
+  private func buildDirectoryForStub(path: String) -> String? {
     var url = URL(string: path)?.deletingLastPathComponent()
     url?.safeAppend(path: Decoy.Constants.mocksFolder)
     return url?.absoluteString
