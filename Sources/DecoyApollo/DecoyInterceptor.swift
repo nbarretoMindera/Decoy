@@ -7,6 +7,7 @@ import Foundation
 public enum DecoyInterceptorError: Error {
   case recordedStubContainsNoData
   case couldNotParseToJSON
+  case invalidURLRequest
 }
 
 /// An Apollo interceptor that integrates the Decoy mocking framework into GraphQL requests.
@@ -96,8 +97,9 @@ public class DecoyInterceptor: ApolloInterceptor {
 
         // Convert the live response into JSON data.
         guard let jsonData = try? JSONSerialization.data(withJSONObject: graphQLResponse.asJSONDictionary()) else {
-          return
+          return completion(.failure(DecoyInterceptorError.couldNotParseToJSON))
         }
+
         // Attempt to parse an HTTPURLResponse from the GraphQLResponse.
         let recordedResponse: HTTPURLResponse
         if let liveResponse = response?.httpResponse as? HTTPURLResponse {
@@ -106,16 +108,25 @@ public class DecoyInterceptor: ApolloInterceptor {
           // Fall back to a default response if none is available.
           recordedResponse = HTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: nil)!
         }
-        // Record the response.
-        Decoy.recorder.record(
-          identifier: .url(url),
-          data: jsonData,
-          response: recordedResponse,
-          error: nil
-        )
 
-        // Complete with the live response.
-        completion(.success(graphQLResponse))
+        // Generate a signature for the response so that we can access it later.
+        do {
+          let httpURLRequest = try request.toURLRequest()
+          let signature = try GraphQLSignature(urlRequest: httpURLRequest)
+
+          // Record the response.
+          Decoy.recorder.record(
+            identifier: .signature(signature),
+            data: jsonData,
+            response: recordedResponse,
+            error: nil
+          )
+
+          // Complete with the live response.
+          completion(.success(graphQLResponse))
+        } catch {
+          return completion(.failure(DecoyInterceptorError.invalidURLRequest))
+        }
     case .failure(let error):
       // Complete with any errors encountered.
         completion(.failure(error))

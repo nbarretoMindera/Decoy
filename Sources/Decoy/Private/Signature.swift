@@ -11,7 +11,7 @@ public struct GraphQLSignature: Hashable, CustomStringConvertible {
     return "\(operationName)-\(querySummary)...-vars:\(variables.hashValue)"
   }
 
-  public static func from(urlRequest: URLRequest) throws -> GraphQLSignature {
+  public init(urlRequest: URLRequest) throws {
     guard let body = urlRequest.httpBody,
           let json = try JSONSerialization.jsonObject(with: body) as? [String: Any],
           let query = json["query"] as? String else {
@@ -21,11 +21,11 @@ public struct GraphQLSignature: Hashable, CustomStringConvertible {
     let opName = json["operationName"] as? String ?? "Unnamed"
     let vars = json["variables"] as? [String: Any] ?? [:]
 
-    return GraphQLSignature(
-      operationName: opName,
-      query: query.replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression).trimmingCharacters(in: .whitespacesAndNewlines),
-      variables: vars.mapValues { $0 as? AnyHashable ?? "\($0)" as AnyHashable }
-    )
+    self.operationName = opName
+    self.query = query
+      .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
+      .trimmingCharacters(in: .whitespacesAndNewlines)
+    self.variables = vars.mapValues { $0 as? AnyHashable ?? "\($0)" as AnyHashable }
   }
 }
 
