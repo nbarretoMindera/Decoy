@@ -22,7 +22,7 @@ class DecoyURLProtocolTests: XCTestCase {
 
   func test_canInitAndCanonicalRequest() {
     let request = URLRequest(url: URL(string: "https://example.com")!)
-    XCTAssertTrue(DecoyURLProtocol.canInit(with: request))
+    XCTAssert(DecoyURLProtocol.canInit(with: request))
     let canonical = DecoyURLProtocol.canonicalRequest(for: request)
     XCTAssertEqual(canonical, request)
   }
@@ -64,7 +64,7 @@ class DecoyURLProtocolTests: XCTestCase {
     if let httpResponse = client.receivedResponse as? HTTPURLResponse {
       XCTAssertEqual(httpResponse.statusCode, 200)
     }
-    XCTAssertTrue(client.finishLoadingCalled)
+    XCTAssert(client.finishLoadingCalled)
 
     XCTAssertEqual(testRecorder.recordCallCount, 1)
   }
@@ -85,7 +85,7 @@ class DecoyURLProtocolTests: XCTestCase {
     if let nsError = client.receivedError as NSError? {
       XCTAssertEqual(nsError.domain, "DecoyErrorDomain")
       XCTAssertEqual(nsError.code, -1)
-      XCTAssertTrue(nsError.localizedDescription.contains("No mock available for URL"))
+      XCTAssert(nsError.localizedDescription.contains("No mock available for URL"))
     }
   }
 }

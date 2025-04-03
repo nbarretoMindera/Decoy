@@ -5,7 +5,6 @@ import XCTest
 final class WriterTests: XCTestCase {
   func test_append_shouldThrowFilePathNotFound_whenPathIsMissing() {
     let processInfo = MockProcessInfo()
-    // Only filename is provided; directory is missing.
     processInfo.mockedEnvironment = [
       Decoy.Constants.mockFilename: "A"
     ]
@@ -17,7 +16,6 @@ final class WriterTests: XCTestCase {
 
   func test_append_shouldThrowFilePathNotFound_whenFileIsMissing() {
     let processInfo = MockProcessInfo()
-    // Only directory is provided; filename is missing.
     processInfo.mockedEnvironment = [
       Decoy.Constants.mockDirectory: "A"
     ]
@@ -29,7 +27,6 @@ final class WriterTests: XCTestCase {
 
   func test_append_shouldThrowFilePathNotFound_whenBothPathAndFileAreMissing() {
     let processInfo = MockProcessInfo()
-    // Neither directory nor filename is provided.
     processInfo.mockedEnvironment = [:]
 
     XCTAssertThrowsError(try Writer(processInfo: processInfo).append(recording: [:])) { error in
@@ -46,9 +43,8 @@ final class WriterTests: XCTestCase {
       Decoy.Constants.mockFilename: "B"
     ]
 
-    // Calling append(recording:) should trigger the creation of the directory.
     try? Writer(processInfo: processInfo, fileManager: fileManager).append(recording: [:])
 
-    XCTAssertTrue(fileManager.didCallCreateDirectory)
+    XCTAssert(fileManager.didCallCreateDirectory)
   }
 }

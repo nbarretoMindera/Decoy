@@ -3,9 +3,6 @@ import XCTest
 @testable import Decoy
 
 final class RecorderTests: XCTestCase {
-
-  // MARK: - shouldRecord Property Tests
-
   func test_shouldRecord_shouldReadFromProcessInfo_whenRecording() {
     let info = MockProcessInfo()
     info.mockedEnvironment = [Decoy.Constants.mode: Decoy.Mode.record.rawValue]
@@ -30,9 +27,6 @@ final class RecorderTests: XCTestCase {
     XCTAssertFalse(Recorder(processInfo: info).shouldRecord)
   }
 
-  // MARK: - Recording Behavior Tests
-
-  /// Tests that calling record() once results in one call to the writer's append method.
   func test_record_shouldCallWriterAppendOnce() {
     let mockWriter = MockWriter()
     let recorder = Recorder(writer: mockWriter)
@@ -51,8 +45,7 @@ final class RecorderTests: XCTestCase {
     wait(for: [expectation], timeout: 1.0)
   }
 
-  /// Tests that multiple calls to record() result in multiple append calls to the writer.
-  func test_record_shouldCallWriterAppendMultipleTimes() {
+  func test_record_shouldCallWriterAppendMultipleTimes() throws {
     let mockWriter = MockWriter()
     let recorder = Recorder(writer: mockWriter)
     let testURL = URL(string: "A")!
@@ -60,19 +53,21 @@ final class RecorderTests: XCTestCase {
     let expectation = XCTestExpectation(description: "Multiple records complete")
 
     recorder.record(identifier: .url(testURL), data: nil, response: nil, error: nil)
+    recorder.record(identifier: .signature(testSignature), data: nil, response: nil, error: nil)
     recorder.record(identifier: .url(testURL), data: nil, response: nil, error: nil)
+    recorder.record(identifier: .signature(testSignature), data: nil, response: nil, error: nil)
     recorder.record(identifier: .url(testURL), data: nil, response: nil, error: nil)
+    recorder.record(identifier: .signature(testSignature), data: nil, response: nil, error: nil)
 
     DispatchQueue.global().asyncAfter(deadline: .now() + 0.2) {
-      XCTAssertEqual(mockWriter.appendedRecordings.count, 3)
+      XCTAssertEqual(mockWriter.appendedRecordings.count, 6)
       expectation.fulfill()
     }
 
-    wait(for: [expectation], timeout: 1.0)
+    wait(for: [expectation], timeout: 1)
   }
 
-  /// Tests that record() produces a valid stub dictionary.
-  func test_record_shouldRecordValidStub() {
+  func test_record_shouldRecordValidStub_forURLType() {
     let mockWriter = MockWriter()
     let recorder = Recorder(writer: mockWriter)
     let url = URL(string: "A")!
@@ -85,36 +80,56 @@ final class RecorderTests: XCTestCase {
     let expectation = XCTestExpectation(description: "Record valid stub")
 
     DispatchQueue.global().asyncAfter(deadline: .now() + 0.1) {
-      guard let recording = mockWriter.appendedRecordings.first else {
-        return XCTFail("No recording was appended")
-      }
-
-      // Verify the URL is correctly recorded.
+      guard let recording = mockWriter.appendedRecordings.first else { return XCTFail("No recording was appended") }
       XCTAssertEqual(recording["identifier"] as? String, url.absoluteString)
 
-      // Verify the mock details.
-      guard let mock = recording["mock"] as? [String: Any] else {
-        return XCTFail("No mock dictionary found")
-      }
+      guard let mock = recording["mock"] as? [String: Any] else { return XCTFail("No mock dictionary found") }
 
-      // The recorded JSON should match our input.
       if let json = mock["json"] as? [String: String] {
         XCTAssertEqual(json, jsonObject)
       } else {
         XCTFail("Recorded JSON is not valid")
       }
 
-      // Verify the response code is recorded.
       XCTAssertEqual(mock["responseCode"] as? Int, 123)
 
       expectation.fulfill()
     }
 
-    wait(for: [expectation], timeout: 1.0)
+    wait(for: [expectation], timeout: 1)
   }
 
-  /// Tests that record() calls the writer's append method (i.e. the writer is asked to write).
-  func test_record_shouldAskWriterToWrite() {
+  func test_record_shouldRecordValidStub_forSignatureType() {
+    let mockWriter = MockWriter()
+    let recorder = Recorder(writer: mockWriter)
+    let jsonObject: [String: String] = ["A": "B"]
+    let data = try? JSONSerialization.data(withJSONObject: jsonObject)
+    let response = HTTPURLResponse(url: testSignature.endpoint, statusCode: 123, httpVersion: nil, headerFields: nil)
+    recorder.record(identifier: .signature(testSignature), data: data, response: response, error: TestError.generic)
+
+    let expectation = XCTestExpectation(description: "Record valid stub")
+
+    DispatchQueue.global().asyncAfter(deadline: .now() + 0.1) {
+      guard let recording = mockWriter.appendedRecordings.first else { return XCTFail("No recording was appended") }
+      XCTAssertEqual(recording["identifier"] as? String, "bar-query {foo}")
+
+      guard let mock = recording["mock"] as? [String: Any] else { return XCTFail("No mock dictionary found") }
+
+      if let json = mock["json"] as? [String: String] {
+        XCTAssertEqual(json, jsonObject)
+      } else {
+        XCTFail("Recorded JSON is not valid")
+      }
+
+      XCTAssertEqual(mock["responseCode"] as? Int, 123)
+
+      expectation.fulfill()
+    }
+
+    wait(for: [expectation], timeout: 1)
+  }
+
+  func test_record_shouldAskWriterToWriteURLs() {
     let mockWriter = MockWriter()
     let recorder = Recorder(writer: mockWriter)
     let testURL = URL(string: "A")!
@@ -122,6 +137,22 @@ final class RecorderTests: XCTestCase {
     let expectation = XCTestExpectation(description: "Record calls writer")
 
     recorder.record(identifier: .url(testURL), data: nil, response: nil, error: nil)
+
+    DispatchQueue.global().asyncAfter(deadline: .now() + 0.1) {
+      XCTAssertTrue(mockWriter.appendWasCalled)
+      expectation.fulfill()
+    }
+
+    wait(for: [expectation], timeout: 1.0)
+  }
+
+  func test_record_shouldAskWriterToWriteSignatures() {
+    let mockWriter = MockWriter()
+    let recorder = Recorder(writer: mockWriter)
+
+    let expectation = XCTestExpectation(description: "Record calls writer")
+
+    recorder.record(identifier: .signature(testSignature), data: nil, response: nil, error: nil)
 
     DispatchQueue.global().asyncAfter(deadline: .now() + 0.1) {
       XCTAssertTrue(mockWriter.appendWasCalled)

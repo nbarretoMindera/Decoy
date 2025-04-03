@@ -15,15 +15,26 @@ final class QueueTests: XCTestCase {
     super.tearDown()
   }
 
-  func test_queue_shouldCreateKey_whenItDoesNotExist() {
+  func test_queue_shouldCreateURLKey_whenItDoesNotExist() {
     queue.queue(stub: Stub(identifier: .url(url), response: .init(data: nil, urlResponse: nil, error: nil)))
     XCTAssertNotNil(queue.queuedResponses[.url(url)])
   }
 
-  func test_queue_shouldSaveResponse() {
+  func test_queue_shouldCreateSignatureKey_whenItDoesNotExist() {
+    queue.queue(stub: Stub(identifier: .signature(testSignature), response: .init(data: nil, urlResponse: nil, error: nil)))
+    XCTAssertNotNil(queue.queuedResponses[.signature(testSignature)])
+  }
+
+  func test_queue_shouldSaveURLResponse() {
     let response: Stub.Response = .init(data: testData1, urlResponse: nil, error: nil)
     queue.queue(stub: Stub(identifier: .url(url), response: response))
     XCTAssertEqual(queue.queuedResponses[.url(url)]?.first?.data, testData1)
+  }
+
+  func test_queue_shouldSaveSignatureResponse() {
+    let response: Stub.Response = .init(data: testData1, urlResponse: nil, error: nil)
+    queue.queue(stub: Stub(identifier: .signature(testSignature), response: response))
+    XCTAssertEqual(queue.queuedResponses[.signature(testSignature)]?.first?.data, testData1)
   }
 
   func test_queue_shouldInsertResponseAtPositionZero() {

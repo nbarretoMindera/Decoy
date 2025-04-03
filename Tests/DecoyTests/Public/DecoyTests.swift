@@ -17,7 +17,7 @@ final class DecoyTests: XCTestCase {
     let session = Decoy.urlSession
     let config = session.configuration
     let containsDecoyProtocol = config.protocolClasses?.contains(where: { $0 == DecoyURLProtocol.self }) ?? false
-    XCTAssertTrue(containsDecoyProtocol, "Decoy.urlSession configuration should include DecoyURLProtocol")
+    XCTAssert(containsDecoyProtocol, "Decoy.urlSession configuration should include DecoyURLProtocol")
   }
 
   func test_mode_returns_liveIfUnmocked_whenInvalidModeRawValue() {
@@ -40,7 +40,7 @@ final class DecoyTests: XCTestCase {
     Decoy.loader = FailingLoader()
 
     Decoy.setUp(processInfo: processInfo)
-    XCTAssertTrue(Decoy.queue.queuedResponses.isEmpty, "Queue should remain empty when Loader fails to load JSON")
+    XCTAssert(Decoy.queue.queuedResponses.isEmpty, "Queue should remain empty when Loader fails to load JSON")
 
     Decoy.loader = originalLoader
   }
@@ -48,7 +48,7 @@ final class DecoyTests: XCTestCase {
   func test_isXCUI_shouldReturnTrue_whenEnvironmentIsSet() {
     let mockedProcessInfo = MockProcessInfo()
     mockedProcessInfo.mockedIsRunningXCUI = true
-    XCTAssertTrue(Decoy.isXCUI(processInfo: mockedProcessInfo))
+    XCTAssert(Decoy.isXCUI(processInfo: mockedProcessInfo))
   }
 
   func test_isXCUI_shouldReturnFalse_whenEnvironmentIsNotSet() {
@@ -72,7 +72,7 @@ final class DecoyTests: XCTestCase {
     let processInfo = MockProcessInfo()
     processInfo.mockedIsRunningXCUI = false
     Decoy.setUp(processInfo: processInfo)
-    XCTAssertTrue(Decoy.queue.queuedResponses.isEmpty)
+    XCTAssert(Decoy.queue.queuedResponses.isEmpty)
   }
 
   func test_setUp_shouldNotLoadJSON_whenMockDirectoryIsNotSet() {
@@ -82,7 +82,7 @@ final class DecoyTests: XCTestCase {
       Decoy.Constants.mockFilename: "B"
     ]
     Decoy.setUp(processInfo: processInfo)
-    XCTAssertTrue(Decoy.queue.queuedResponses.isEmpty)
+    XCTAssert(Decoy.queue.queuedResponses.isEmpty)
   }
 
   func test_setUp_shouldNotQueue_whenMockFilenameIsNotSet() {
@@ -92,7 +92,7 @@ final class DecoyTests: XCTestCase {
       Decoy.Constants.mockDirectory: "B"
     ]
     Decoy.setUp(processInfo: processInfo)
-    XCTAssertTrue(Decoy.queue.queuedResponses.isEmpty)
+    XCTAssert(Decoy.queue.queuedResponses.isEmpty)
   }
 
   func test_setUp_shouldLoadJSON_whenURLContainsValidJSON() {

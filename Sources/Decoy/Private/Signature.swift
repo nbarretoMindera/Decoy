@@ -8,7 +8,7 @@ public struct GraphQLSignature: Codable, CustomStringConvertible, Hashable {
 
   public var description: String {
     let summary = query.replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression).prefix(60)
-    return "\(operationName)-\(summary)...-vars:\(variables.hashValue)"
+    return "\(operationName)-\(summary)"
   }
 
   public init(urlRequest: URLRequest) throws {
