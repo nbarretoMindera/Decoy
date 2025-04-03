@@ -1,36 +1,24 @@
 import Foundation
 
-/// A custom URLProtocol that intercepts network requests and serves mock responses.
-///
-/// When a request is intercepted:
-/// - If a mock is available in Decoy's queue, that response is returned.
-/// - If no mock is available and the mode is liveIfUnmocked or record,
-///   a live network request is performed (using a session that excludes this protocol to avoid recursion).
-///   In record mode, the live response is recorded.
-/// - If no mock is available in forceOffline mode, an error is returned.
-///
-/// This URLProtocol enables UI tests to run without requiring the app to be aware of the mocking system.
 public class DecoyURLProtocol: URLProtocol {
-  /// Determines whether this protocol can handle the given request.
-  ///
-  /// - Parameter request: The URLRequest to check.
-  /// - Returns: Always returns true so that all requests are intercepted.
+  /// A closure that returns the URLSession to use for live requests.
+  /// In production, this returns a session with the default configuration (excluding DecoyURLProtocol).
+  /// In tests, you can override this to return a custom or mocked session.
+  public static var liveSessionProvider: () -> URLSession = {
+    let config = URLSessionConfiguration.default
+    // Remove DecoyURLProtocol from the protocolClasses to prevent recursion.
+    config.protocolClasses = config.protocolClasses?.filter { $0 != DecoyURLProtocol.self }
+    return URLSession(configuration: config)
+  }
+
   public override class func canInit(with request: URLRequest) -> Bool {
     true
   }
 
-  /// Returns the canonical version of the request.
-  ///
-  /// - Parameter request: The original URLRequest.
-  /// - Returns: The canonical URLRequest (unchanged).
   public override class func canonicalRequest(for request: URLRequest) -> URLRequest {
     request
   }
 
-  /// Starts loading the request.
-  ///
-  /// This method first checks for a queued mock for the request’s URL. If found, it returns the mock.
-  /// Otherwise, it delegates behavior based on the current Decoy mode.
   public override func startLoading() {
     guard let url = request.url else {
       client?.urlProtocol(self, didFailWithError: URLError(.badURL))
@@ -53,14 +41,6 @@ public class DecoyURLProtocol: URLProtocol {
 }
 
 private extension DecoyURLProtocol {
-  // MARK: - Private Helper Methods
-
-  /// Checks the mock queue for a response for the specified URL.
-  ///
-  /// If a mock is found, it is sent to the client and recorded if needed.
-  ///
-  /// - Parameter url: The URL for which to check for a queued mock.
-  /// - Returns: `true` if a mock response was found and handled; otherwise, `false`.
   func handleMockResponse(for url: URL) -> Bool {
     if let mockResponse = Decoy.queue.nextQueuedResponse(for: .url(url)) {
       if let data = mockResponse.data {
@@ -80,20 +60,8 @@ private extension DecoyURLProtocol {
     return false
   }
 
-  /// Performs a live network request for the given request and URL.
-  ///
-  /// A live URLSession is created with a configuration that excludes DecoyURLProtocol
-  /// to prevent recursion. The result of the live request is passed to the client.
-  /// In record mode, the live response is recorded if recording is enabled.
-  ///
-  /// - Parameters:
-  ///   - request: The URLRequest to be executed.
-  ///   - url: The URL from the request.
   func performLiveRequest(for request: URLRequest, url: URL) {
-    let config = URLSessionConfiguration.default
-    // Exclude DecoyURLProtocol to avoid recursive interception.
-    config.protocolClasses = config.protocolClasses?.filter { $0 != DecoyURLProtocol.self }
-    let liveSession = URLSession(configuration: config)
+    let liveSession = DecoyURLProtocol.liveSessionProvider()
 
     let task = liveSession.dataTask(with: request) { data, response, error in
       if let error = error {
@@ -114,9 +82,6 @@ private extension DecoyURLProtocol {
     task.resume()
   }
 
-  /// Sends an error to the client indicating that no mock is available in forceOffline mode.
-  ///
-  /// - Parameter url: The URL for which no mock was available.
   func sendForceOfflineError(for url: URL) {
     let error = NSError(
       domain: "DecoyErrorDomain",

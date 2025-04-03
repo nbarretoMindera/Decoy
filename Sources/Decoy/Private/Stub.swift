@@ -11,7 +11,7 @@ public struct Stub {
 
       switch type {
       case "url":
-        guard let urlString = json["url"] as? String else { return nil }
+        guard let urlString = json["identifier"] as? String else { return nil }
         guard let url = URL(string: urlString) else { return nil }
         self = .url(url)
       case "signature":

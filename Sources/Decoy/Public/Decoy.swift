@@ -112,7 +112,7 @@ public enum Decoy {
   public static var urlSession: URLSession {
     let config = URLSessionConfiguration.default
     // Prepend Decoy's interception mechanism (e.g., DecoyURLProtocol) to intercept requests.
-    config.protocolClasses = [DecoyURLProtocol.self] + (config.protocolClasses ?? [])
+    config.protocolClasses?.insert(DecoyURLProtocol.self, at: 0)
     return URLSession(configuration: config)
   }
 
