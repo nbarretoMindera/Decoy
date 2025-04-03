@@ -106,6 +106,7 @@ public class DecoyInterceptor: ApolloInterceptor {
           recordedResponse = liveResponse
         } else {
           // Fall back to a default response if none is available.
+          // TODO: Should we throw an error here / complete with failure instead?
           recordedResponse = HTTPURLResponse(url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: nil)!
         }
 
