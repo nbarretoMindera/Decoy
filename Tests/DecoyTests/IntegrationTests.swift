@@ -9,6 +9,11 @@ class IntegrationTests: XCTestCase {
     fileURL = FileManager.default.temporaryDirectory.appendingPathComponent("mock.json")
   }
 
+  override func tearDownWithError() throws {
+    try FileManager.default.removeItem(at: fileURL)
+    try super.tearDownWithError()
+  }
+
   func test_URLProtocolInterceptsURLRequestIntegration() {
     setenv(Decoy.Constants.mode, "record", 1)
     setenv(Decoy.Constants.mockDirectory, FileManager.default.temporaryDirectory.absoluteString, 1)
@@ -31,6 +36,7 @@ class IntegrationTests: XCTestCase {
     session.dataTask(with: request) { _, _, _ in expectation.fulfill() }.resume()
 
     waitForExpectations(timeout: 1, handler: nil)
+    waitForMocksToBeWritten(at: fileURL)
 
     guard let stubs = Loader().loadJSON(from: fileURL) else {
       return XCTFail("Failed to load stubs from disk")
@@ -97,4 +103,18 @@ class MockURLProtocol: URLProtocol {
   }
 
   override func stopLoading() {}
+}
+
+private extension IntegrationTests {
+  /// Polls the given file URL until the Loader returns at least one stub, or the timeout expires.
+  func waitForMocksToBeWritten(at url: URL, timeout: TimeInterval = 5) {
+    let startTime = Date()
+    while Date().timeIntervalSince(startTime) < timeout {
+      if let stubs = Loader().loadJSON(from: url), !stubs.isEmpty {
+        return
+      }
+      RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+    }
+    XCTFail("Timed out waiting for mocks to be written to disk")
+  }
 }

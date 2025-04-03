@@ -1,7 +1,7 @@
 [
   {
     "type": "url",
-    "url": "https://testing-some-json",
+    "identifier": "https://testing-some-json",
     "mock": {
       "json": [
         "MOCKED OR WHATEVER"
