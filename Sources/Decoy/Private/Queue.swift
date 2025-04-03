@@ -22,6 +22,8 @@ public protocol QueueInterface {
   /// - Parameter url: The URL for which to retrieve the next mocked response.
   /// - Returns: An optional `Stub.Response` if one exists in the queue; otherwise, `nil`.
   func nextQueuedResponse(for identifier: Stub.Identifier) -> Stub.Response?
+
+  func clear()
 }
 
 /// A class responsible for managing a queue of mocked responses.
@@ -75,5 +77,9 @@ public class Queue: QueueInterface {
     } else {
       return nil
     }
+  }
+
+  public func clear() {
+    queuedResponses.removeAll()
   }
 }

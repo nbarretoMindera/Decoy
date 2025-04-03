@@ -46,7 +46,7 @@ public class Recorder: RecorderInterface {
   ///     Defaults to `ProcessInfo.processInfo`.
   ///   - writer: An instance conforming to `WriterInterface` responsible for file operations.
   ///     Defaults to an instance of `Writer()`.
-  init(processInfo: ProcessInfo = .processInfo, writer: WriterInterface = Writer()) {
+  init(processInfo: ProcessInfo = Decoy.processInfo, writer: WriterInterface = Writer()) {
     self.processInfo = processInfo
     self.writer = writer
   }

@@ -41,7 +41,7 @@ class Writer: WriterInterface {
   ///                  Defaults to `ProcessInfo.processInfo`.
   ///   - fileManager: The `FileManager` instance used for performing file operations.
   ///                  Defaults to `FileManager.default`.
-  init(processInfo: ProcessInfo = .processInfo, fileManager: FileManager = .default) {
+  init(processInfo: ProcessInfo = Decoy.processInfo, fileManager: FileManager = .default) {
     self.processInfo = processInfo
     self.fileManager = fileManager
   }

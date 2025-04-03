@@ -53,6 +53,8 @@ public enum Decoy {
   public static func logWarning(_ message: String) { logger.warning(message) }
   public static func logError(_ message: String) { logger.error(message) }
 
+  public static var processInfo: ProcessInfo = .processInfo
+
   /// The recorder that writes out live network responses.
   ///
   /// When in record mode, live responses are captured by the recorder so that they can be saved and
@@ -63,7 +65,7 @@ public enum Decoy {
   ///
   /// - Parameter processInfo: The ProcessInfo to inspect.
   /// - Returns: The Decoy mode based on the environment variable, defaulting to `.liveIfUnmocked`.
-  public static func mode(for processInfo: ProcessInfo = .processInfo) -> Decoy.Mode {
+  public static func mode(for processInfo: ProcessInfo = Decoy.processInfo) -> Decoy.Mode {
     guard let modeString = processInfo.environment[Constants.mode] else { return .liveIfUnmocked }
     return Decoy.Mode(rawValue: modeString) ?? .liveIfUnmocked
   }
@@ -76,6 +78,8 @@ public enum Decoy {
   ///
   /// - Parameter processInfo: The ProcessInfo instance used to access environment variables. Defaults to `.processInfo`.
   public static func setUp(processInfo: ProcessInfo = .processInfo) {
+    self.processInfo = processInfo
+
     // Only proceed if the app is running in a UI test environment.
     guard isXCUI(processInfo: processInfo) else { return }
 

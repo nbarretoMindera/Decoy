@@ -6,16 +6,18 @@ class DecoyURLProtocolTests: XCTestCase {
 
   override func setUp() {
     super.setUp()
-    Decoy.queue = Queue()
+
+    let mockProcessInfo = MockProcessInfo()
+    mockProcessInfo.mockedEnvironment?[Decoy.Constants.mode] = "record"
+
+    Decoy.setUp(processInfo: mockProcessInfo)
     Decoy.recorder = MockRecorder()
-    setenv(decoyModeKey, "liveIfUnmocked", 1)
 
     URLSessionConfiguration.default.protocolClasses = [MockLiveURLProtocol.self, DecoyURLProtocol.self]
     URLProtocol.registerClass(MockLiveURLProtocol.self)
   }
 
   override func tearDown() {
-    unsetenv(decoyModeKey)
     URLProtocol.unregisterClass(MockLiveURLProtocol.self)
     super.tearDown()
   }
@@ -72,8 +74,11 @@ class DecoyURLProtocolTests: XCTestCase {
   func test_sendForceOfflineError() {
     let url = URL(string: "https://example.com/offline")!
     let request = URLRequest(url: url)
-    setenv(decoyModeKey, "forceOffline", 1)
 
+    let mockProcessInfo = MockProcessInfo()
+    mockProcessInfo.mockedEnvironment?[Decoy.Constants.mode] = "forceOffline"
+
+    Decoy.setUp(processInfo: mockProcessInfo)
     Decoy.queue.queuedResponses[.url(url)] = nil
 
     let client = FakeURLProtocolClient()

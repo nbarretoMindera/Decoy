@@ -122,6 +122,7 @@ class MockQueue: QueueInterface {
     guard !queuedResponses.isEmpty else { return nil }
     return queuedResponses[identifier]?.first
   }
+  func clear() {}
 }
 
 enum TestError: Error {

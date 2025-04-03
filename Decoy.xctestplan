@@ -21,7 +21,23 @@
   },
   "testTargets" : [
     {
-      "parallelizable" : false,
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "DecoyApolloTests",
+        "name" : "DecoyApolloTests"
+      }
+    },
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "DecoyIntegrationTests",
+        "name" : "DecoyIntegrationTests"
+      }
+    },
+    {
+      "parallelizable" : true,
       "target" : {
         "containerPath" : "container:",
         "identifier" : "DecoyTests",

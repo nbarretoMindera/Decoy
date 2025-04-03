@@ -1,24 +1,32 @@
 import XCTest
 @testable import Decoy
 
-class IntegrationTests: XCTestCase {
+class DecoyIntegrationTests: XCTestCase {
   var fileURL: URL!
 
   override func setUpWithError() throws {
     try super.setUpWithError()
     fileURL = FileManager.default.temporaryDirectory.appendingPathComponent("mock.json")
+
+    let processInfo = MockProcessInfo()
+    processInfo.mockedIsRunningXCUI = true
+    processInfo.mockedEnvironment = [
+      Decoy.Constants.isXCUI: "true",
+      Decoy.Constants.mode: "record",
+      Decoy.Constants.mockDirectory: fileURL.absoluteString,
+      Decoy.Constants.mockFilename: "mock.json"
+    ]
+
+    Decoy.queue.clear()
+    Decoy.setUp(processInfo: processInfo)
   }
 
-  override func tearDownWithError() throws {
-    try FileManager.default.removeItem(at: fileURL)
-    try super.tearDownWithError()
+  override func tearDown() {
+    try? FileManager.default.removeItem(at: fileURL)
+    super.tearDown()
   }
 
   func test_URLProtocolInterceptsURLRequestIntegration() {
-    setenv(Decoy.Constants.mode, "record", 1)
-    setenv(Decoy.Constants.mockDirectory, FileManager.default.temporaryDirectory.absoluteString, 1)
-    setenv(Decoy.Constants.mockFilename, "mock.json", 1)
-
     MockURLProtocol.dataToReturn = exampleBody
     DecoyURLProtocol.liveSessionProvider = {
       let config = URLSessionConfiguration.ephemeral
@@ -68,9 +76,7 @@ class IntegrationTests: XCTestCase {
   }
 }
 
-
-
-private extension IntegrationTests {
+private extension DecoyIntegrationTests {
   var exampleBody: Data {
     """
     {
@@ -81,31 +87,7 @@ private extension IntegrationTests {
     """
       .data(using: .utf8)!
   }
-}
 
-class MockURLProtocol: URLProtocol {
-  static var dataToReturn: Data?
-  var httpURLResponseToReturn: HTTPURLResponse?
-
-  override class func canInit(with request: URLRequest) -> Bool {
-    true
-  }
-
-  override class func canonicalRequest(for request: URLRequest) -> URLRequest {
-    request
-  }
-
-  override func startLoading() {
-    if let dataToReturn = Self.dataToReturn {
-      client?.urlProtocol(self, didLoad: dataToReturn)
-      client?.urlProtocolDidFinishLoading(self)
-    }
-  }
-
-  override func stopLoading() {}
-}
-
-private extension IntegrationTests {
   /// Polls the given file URL until the Loader returns at least one stub, or the timeout expires.
   func waitForMocksToBeWritten(at url: URL, timeout: TimeInterval = 5) {
     let startTime = Date()
