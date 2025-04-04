@@ -124,10 +124,19 @@ Decoy also provides a `setUp()` function that loads mocks from disk (using envir
 
 There's a `DecoyExample` in this repository. You can build it and take a look, it's super simple. It uses a couple of free public APIs as examples and its UI test target shows how to mock single or multiple calls to single or multiple endpoints with Decoy.
 
+## 🌊 How do I know that my mock schemas aren't out of date with my real backend?
+* This is a nice incidental benefit of Decoy, and while it's reactive rather than proactive, it means that your tests fail if your model objects change.
+* Your mocks represent a moment in time at which they were recorded, and your UI test that uses them is linked to that moment.
+* If your backend teams change a schema and your mocks no longer align to it, your app will break, and you'll fix it. This is the "reactive" part.
+* But what this means is that as soon as you've changed your app, your UI tests will fail because the mocks are still set to the old schema.
+* That way, you'll know that you're dealing with an out-of-date mock and you can go re-record and update your test.
+* We'll be actively adding ways to proactively check the validity of mocks against live endpoints soon. Which leads to the question...
+
 ## 💡 What are your future plans for Decoy?
 
-It's still early days, and I'm excited to see how we can continue to grow Decoy into an even more useful UI test mocking library. It's a specific use case that I don't really want to deviate from too much, I'm thinking of these tests as snapshots with a flow, and separate from integration testing (which is still crucially important).
+It's still early days, and I'm excited to see how we can continue to grow Decoy into an even more useful UI test mocking library.
 
 Some specific things that still need doing / some ideas for the future:
 * Enhancing error representation in JSON mocks.
-* Verify recorded mocks are still up to date versus responses delivered from the backend they are mocking (avoid mock drift).
+* Proactively verify that recorded mocks are still up to date versus responses delivered from the backend they are mocking (avoid mock drift).
+* Avoid app launch boilerplate in mocks by recording a separate set of "base mocks" which are checked if not found amongst your specific test's mocks. 
