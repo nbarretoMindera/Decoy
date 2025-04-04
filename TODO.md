@@ -1,8 +1,7 @@
 - Store the endpoint with a GQL request (if type is signature)
 - Get the GQL Integration test finished.
 - Battle-test the GQL implementation a bit more.
-- Change the GraphQLSignature to include the input parameters.
 - Make Decoy have the idea of a “standard” set of mocks which are checked first to avoid repetition / huge mocks.
 - Document how drift solves itself because the Codables will fail if the data in the mock mismatches the code in the app.
-- We need a way to pass feature flags – we can copy what we did in the Appium repo with launch arguments, but ensure it works with old and new flagging libraries.
+- We need a way to pass flags – copy what we did for Appium with launch args, be sure it works with both flagging libraries.
 - Make a GraphQL Example with a proper Apollo schema for some public GQL API.
