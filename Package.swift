@@ -19,7 +19,7 @@ let package = Package(
     ),
   ],
   dependencies: [
-    .package(url: "https://github.com/apollographql/apollo-ios", exact: "1.18.0"),
+    .package(url: "https://github.com/apollographql/apollo-ios", from: "1.18.0"),
   ],
   targets: [
     .target(
