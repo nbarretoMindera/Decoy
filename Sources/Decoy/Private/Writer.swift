@@ -75,6 +75,8 @@ class Writer: WriterInterface {
          let data = try? Data(contentsOf: url),
          let jsonArray = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] {
         existingRecordings = jsonArray
+      } else {
+        fileManager.createFile(atPath: url.path, contents: nil)
       }
 
       // Append the new recording to the existing recordings.

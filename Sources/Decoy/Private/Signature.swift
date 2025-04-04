@@ -24,7 +24,6 @@ public struct GraphQLSignature: Codable, CustomStringConvertible, Hashable {
       .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
       .trimmingCharacters(in: .whitespacesAndNewlines)
 
-    // Convert variables to JSONValue
     var convertedVars = [String: JSONValue]()
     for (key, value) in vars {
       if let jsonValue = JSONValue.from(any: value) {
@@ -45,7 +44,6 @@ public struct GraphQLSignature: Codable, CustomStringConvertible, Hashable {
       if let jsonValue = JSONValue.from(any: value) {
         variablesConverted[key] = jsonValue
       } else {
-        // You can decide how to handle values that cannot be converted.
         variablesConverted[key] = .null
       }
     }

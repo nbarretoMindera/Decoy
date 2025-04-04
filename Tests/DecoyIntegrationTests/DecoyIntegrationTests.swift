@@ -13,7 +13,7 @@ class DecoyIntegrationTests: XCTestCase {
     processInfo.mockedEnvironment = [
       Decoy.Constants.isXCUI: "true",
       Decoy.Constants.mode: "record",
-      Decoy.Constants.mockDirectory: fileURL.absoluteString,
+      Decoy.Constants.mockDirectory: FileManager.default.temporaryDirectory.absoluteString,
       Decoy.Constants.mockFilename: "mock.json"
     ]
 
