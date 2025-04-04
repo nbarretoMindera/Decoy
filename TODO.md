@@ -1,4 +1,4 @@
-- Re-sort out the public/private folders to better reflect the lay of the land now.
+- Store the endpoint with a GQL request (if type is signature)
 - Get the GQL Integration test finished.
 - Battle-test the GQL implementation a bit more.
 - Change the GraphQLSignature to include the input parameters.
