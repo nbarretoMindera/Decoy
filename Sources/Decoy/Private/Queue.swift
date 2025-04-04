@@ -58,6 +58,8 @@ public class Queue: QueueInterface {
   /// This method removes and returns the last element of the array for the specified URL,
   /// which corresponds to the most recently added response.
   public func nextQueuedResponse(for identifier: Stub.Identifier) -> Stub.Response? {
+    guard Decoy.isXCUI() else { return nil }
+
     if case .url(let url) = identifier {
       if let stub = queuedResponses[.url(url)]?.popLast() {
         Decoy.logInfo("Providing decoy for \(url)")

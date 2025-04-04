@@ -12,7 +12,8 @@ public class DecoyURLProtocol: URLProtocol {
   }
 
   public override class func canInit(with request: URLRequest) -> Bool {
-    true
+    // If we're in a UI testing context, we can use this protocol. If not, skip right past it.
+    Decoy.isXCUI()
   }
 
   public override class func canonicalRequest(for request: URLRequest) -> URLRequest {

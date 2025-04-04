@@ -50,6 +50,8 @@ struct Loader: LoaderInterface {
   ///
   /// If the JSON file cannot be read or the decoding process fails, this method returns `nil`.
   func loadJSON(from url: URL) -> [Stub]? {
+    guard Decoy.isXCUI() else { return nil }
+
     guard let data = try? Data(contentsOf: url) else { return nil }
     guard let json = try? JSONSerialization.jsonObject(with: data) as? StubArray else { return nil }
 

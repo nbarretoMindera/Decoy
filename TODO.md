@@ -1,4 +1,3 @@
-- Verify that all Decoy methods / the protocol, interceptor etc. verify isXCUI before doing anything.
 - Re-sort out the public/private folders to better reflect the lay of the land now.
 - Get the GQL Integration test finished.
 - Battle-test the GQL implementation a bit more.

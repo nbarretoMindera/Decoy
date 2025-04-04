@@ -8,6 +8,10 @@ final class LoaderTests: XCTestCase {
   override func setUp() {
     super.setUp()
 
+    let processInfo = MockProcessInfo()
+    processInfo.mockedIsRunningXCUI = true
+
+    Decoy.setUp(processInfo: processInfo)
     loader = Loader()
   }
 

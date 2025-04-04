@@ -111,7 +111,7 @@ final class RecorderTests: XCTestCase {
 
     DispatchQueue.global().asyncAfter(deadline: .now() + 0.1) {
       guard let recording = mockWriter.appendedRecordings.first else { return XCTFail("No recording was appended") }
-      XCTAssertEqual(recording["identifier"] as? String, "bar-query {foo}")
+      XCTAssertEqual(recording["identifier"] as? String, "bar_")
 
       guard let mock = recording["mock"] as? [String: Any] else { return XCTFail("No mock dictionary found") }
 

@@ -78,10 +78,11 @@ public enum Decoy {
   ///
   /// - Parameter processInfo: The ProcessInfo instance used to access environment variables. Defaults to `.processInfo`.
   public static func setUp(processInfo: ProcessInfo = .processInfo) {
-    self.processInfo = processInfo
-
     // Only proceed if the app is running in a UI test environment.
     guard isXCUI(processInfo: processInfo) else { return }
+
+    // Store processInfo so others can use it later and it's consistent.
+    self.processInfo = processInfo
 
     // Retrieve the directory and filename for the mocks from environment variables.
     guard let directory = processInfo.environment[Constants.mockDirectory],
@@ -123,7 +124,7 @@ public enum Decoy {
   ///
   /// - Parameter processInfo: The ProcessInfo instance used to read environment variables. Defaults to `.processInfo`.
   /// - Returns: `true` if the environment variable for UI testing is set to "true"; otherwise, `false`.
-  public static func isXCUI(processInfo: ProcessInfo = .processInfo) -> Bool {
+  public static func isXCUI(processInfo: ProcessInfo = Decoy.processInfo) -> Bool {
     return processInfo.environment[Constants.isXCUI] == "true"
   }
 }

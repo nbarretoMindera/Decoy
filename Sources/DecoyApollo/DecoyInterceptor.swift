@@ -5,6 +5,7 @@ import Foundation
 
 /// Potential errors returned in the case of failure.
 public enum DecoyInterceptorError: Error {
+  case notXCUI
   case recordedStubContainsNoData
   case couldNotParseToJSON
   case invalidURLRequest
@@ -55,6 +56,10 @@ public class DecoyInterceptor: ApolloInterceptor {
     response: Apollo.HTTPResponse<Operation>?,
     completion: @escaping (Result<Apollo.GraphQLResult<Operation.Data>, any Error>) -> Void
   ) where Operation : ApolloAPI.GraphQLOperation {
+    // If we're not running in an XCUI context, do nothing and exit early.
+    guard Decoy.isXCUI() else {
+      return completion(.failure(DecoyInterceptorError.notXCUI))
+    }
 
     // Convert Apollo's HTTPRequest to a URLRequest to extract the URL.
     guard let urlRequest = try? request.toURLRequest(), let signature = try? GraphQLSignature(urlRequest: urlRequest) else {
