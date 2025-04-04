@@ -8,6 +8,7 @@ public enum JSONValue: Codable, Hashable {
   case object([String: JSONValue])
   case null
 
+  // Decode using standard Codable.
   public init(from decoder: Decoder) throws {
     let container = try decoder.singleValueContainer()
     if container.decodeNil() {
@@ -27,38 +28,27 @@ public enum JSONValue: Codable, Hashable {
     }
   }
 
+  // Encode using standard Codable.
   public func encode(to encoder: Encoder) throws {
     var container = encoder.singleValueContainer()
     switch self {
-    case .null:
-      try container.encodeNil()
-    case .bool(let value):
-      try container.encode(value)
-    case .number(let value):
-      try container.encode(value)
-    case .string(let value):
-      try container.encode(value)
-    case .array(let value):
-      try container.encode(value)
-    case .object(let value):
-      try container.encode(value)
+    case .null: try container.encodeNil()
+    case .bool(let value): try container.encode(value)
+    case .number(let value): try container.encode(value)
+    case .string(let value): try container.encode(value)
+    case .array(let value): try container.encode(value)
+    case .object(let value): try container.encode(value)
     }
   }
 
   // Helper to create a JSONValue from an arbitrary value.
   public static func from(any: Any) -> JSONValue? {
     switch any {
-    case let value as String:
-      return .string(value)
-    case let value as Int:
-      return .number(Double(value))
-    case let value as Double:
-      return .number(value)
-    case let value as Bool:
-      return .bool(value)
-    case let value as [Any]:
-      let array = value.compactMap { JSONValue.from(any: $0) }
-      return .array(array)
+    case let value as String: return .string(value)
+    case let value as Int: return .number(Double(value))
+    case let value as Double: return .number(value)
+    case let value as Bool: return .bool(value)
+    case let value as [Any]: return .array(value.compactMap { JSONValue.from(any: $0) })
     case let value as [String: Any]:
       var dict = [String: JSONValue]()
       for (k, v) in value {
@@ -67,8 +57,7 @@ public enum JSONValue: Codable, Hashable {
         }
       }
       return .object(dict)
-    default:
-      return nil
+    default: return nil
     }
   }
 }

@@ -11,7 +11,7 @@ open class DecoyTestCase: XCTestCase {
   public var app: XCUIApplication!
 
   /// Log streamer used to parse logs saved to /tmp/ by Decoy and display them neatly in the XCTest output.
-  var logStream: DecoyLogStream!
+  var logStream: LogStream!
 
   /// Sets up the test environment with a specified mock directory and mode.
   ///
@@ -28,7 +28,7 @@ open class DecoyTestCase: XCTestCase {
     super.setUp()
 
     // Set up our log stream to begin reading from /tmp/.
-    logStream = DecoyLogStream(testCase: self)
+    logStream = LogStream(testCase: self)
 
     // Ensure we have a directory to write stubs to.
     guard let directory = buildDirectoryForStub(path: path) else {
