@@ -2,7 +2,7 @@ import Foundation
 import OSLog
 
 /// A protocol defining a structured logging interface used by Decoy.
-public protocol LoggerProtocol {
+public protocol LoggerInterface {
   /// Logs an informational message.
   func info(_ message: String)
 
@@ -15,7 +15,7 @@ public protocol LoggerProtocol {
 
 /// A logger that writes messages to a shared log file in `/tmp`,
 /// used for real-time streaming into UI tests.
-public struct Logger: LoggerProtocol {
+public struct Logger: LoggerInterface {
   private let logPath = "/tmp/decoy_live.log"
 
   /// Creates a new logger that writes to `/tmp/decoy_live.log`.

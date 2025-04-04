@@ -76,9 +76,9 @@ class DecoyURLProtocolTests: XCTestCase {
     let request = URLRequest(url: url)
 
     let mockProcessInfo = MockProcessInfo()
-    mockProcessInfo.mockedEnvironment?[Decoy.Constants.mode] = "forceOffline"
+    mockProcessInfo.mockedEnvironment = [Decoy.Constants.mode: "forceOffline"]
 
-    Decoy.setUp(processInfo: mockProcessInfo)
+    Decoy.processInfo = mockProcessInfo
     Decoy.queue.queuedResponses[.url(url)] = nil
 
     let client = FakeURLProtocolClient()

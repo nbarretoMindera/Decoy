@@ -91,8 +91,9 @@ private extension DecoyIntegrationTests {
   /// Polls the given file URL until the Loader returns at least one stub, or the timeout expires.
   func waitForMocksToBeWritten(at url: URL, timeout: TimeInterval = 5) {
     let startTime = Date()
+    let loader = Loader()
     while Date().timeIntervalSince(startTime) < timeout {
-      if let stubs = Loader().loadJSON(from: url), !stubs.isEmpty {
+      if let stubs = loader.loadJSON(from: url), !stubs.isEmpty {
         return
       }
       RunLoop.current.run(until: Date().addingTimeInterval(0.1))

@@ -47,7 +47,7 @@ public enum Decoy {
   static var loader: LoaderInterface = Loader()
 
   /// The log used to print debug statements that can be read while running tests in a separate sandbox.
-  public static var logger: LoggerProtocol = Logger()
+  static var logger: LoggerInterface = Logger()
 
   public static func logInfo(_ message: String) { logger.info(message) }
   public static func logWarning(_ message: String) { logger.warning(message) }
@@ -96,8 +96,7 @@ public enum Decoy {
 
     // Load the mocks from the JSON file.
     guard let stubs = loader.loadJSON(from: url) else {
-      logError("setUp: Failed to load mocks.")
-      return
+      return logError("setUp: Failed to load mocks.")
     }
 
     // Queue each loaded stub for later retrieval.
