@@ -46,7 +46,7 @@ class URLProtocolIntegrationTests: XCTestCase {
     session.dataTask(with: request) { _, _, _ in }.resume()
 
     // Since mocks are written on a queue, we need a slight delay in the test to simulate real behaviour.
-    waitForMocksToBeWritten(at: fileURL)
+    WriteWaiter.waitForMocksToBeWritten(at: fileURL)
 
     // Verify that we can load the stubs which have now been read from the URLSession, recorded, and written to disk.
     guard let stubs = Loader().loadJSON(from: fileURL), let stub = stubs.first else {
@@ -76,18 +76,5 @@ private extension URLProtocolIntegrationTests {
     }
     """
       .data(using: .utf8)!
-  }
-
-  /// Polls the given file URL until the Loader returns at least one stub, or the timeout expires.
-  func waitForMocksToBeWritten(at url: URL, timeout: TimeInterval = 1) {
-    let startTime = Date()
-    let loader = Loader()
-    while Date().timeIntervalSince(startTime) < timeout {
-      if let stubs = loader.loadJSON(from: url), !stubs.isEmpty {
-        return
-      }
-      RunLoop.current.run(until: Date().addingTimeInterval(0.1))
-    }
-    XCTFail("Timed out waiting for mocks to be written to disk")
   }
 }
