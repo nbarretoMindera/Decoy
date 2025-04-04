@@ -27,7 +27,7 @@ class URLProtocolIntegrationTests: XCTestCase {
   }
 
   func test_urlProtocol_decoys() {
-    // Figure the URL protocols – one to return mocked "live" data to be recorded, one for Decoy itself to serve a mock.
+    // Configure the URL protocols – one to return mocked "live" data to be recorded, one for Decoy itself to serve a mock.
     MockURLProtocol.dataToReturn = exampleBody
     DecoyURLProtocol.liveSessionProvider = {
       let config = URLSessionConfiguration.ephemeral
