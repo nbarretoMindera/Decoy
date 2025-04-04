@@ -78,12 +78,10 @@ public class DecoyInterceptor: ApolloInterceptor {
         // Parse the GraphQLResponse to get the result.
         let (result, _) = try graphQLResponse.parseResult()
         // Complete with the stubbed result.
-        completion(.success(result))
-        return
+        return completion(.success(result))
       } catch {
         // If an error occurs during stub conversion, complete with the error.
-        completion(.failure(error))
-        return
+        return completion(.failure(error))
       }
     }
 
@@ -127,8 +125,8 @@ public class DecoyInterceptor: ApolloInterceptor {
         } catch {
           return completion(.failure(DecoyInterceptorError.invalidURLRequest))
         }
-    case .failure(let error):
-      // Complete with any errors encountered.
+      case .failure(let error):
+        // Complete with any errors encountered.
         completion(.failure(error))
       }
     }

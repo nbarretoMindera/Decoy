@@ -7,8 +7,10 @@ public struct GraphQLSignature: Codable, CustomStringConvertible, Hashable {
   public let variables: [String: JSONValue]
 
   public var description: String {
-    let summary = query.replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression).prefix(60)
-    return "\(operationName)-\(summary)"
+    let formattedVariables = variables
+      .map { "\($0.key)-\($0.value)" }
+      .joined(separator: "_")
+    return "\(operationName)-\(formattedVariables)"
   }
 
   public init(urlRequest: URLRequest) throws {
