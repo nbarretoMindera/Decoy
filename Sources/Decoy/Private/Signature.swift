@@ -8,9 +8,9 @@ public struct GraphQLSignature: Codable, CustomStringConvertible, Hashable {
 
   public var description: String {
     let formattedVariables = variables
-      .map { "\($0.key)-\($0.value)" }
+      .map { "\($0.key)-\($0.value.description)" }
       .joined(separator: "_")
-    return "\(operationName)-\(formattedVariables)"
+    return "\(operationName)_\(formattedVariables)"
   }
 
   public init(urlRequest: URLRequest) throws {
@@ -28,7 +28,7 @@ public struct GraphQLSignature: Codable, CustomStringConvertible, Hashable {
 
     var convertedVars = [String: JSONValue]()
     for (key, value) in vars {
-      if let jsonValue = JSONValue.from(any: value) {
+      if let jsonValue = JSONValue(json: value) {
         convertedVars[key] = jsonValue
       }
     }
@@ -43,7 +43,7 @@ public struct GraphQLSignature: Codable, CustomStringConvertible, Hashable {
     let vars = json["variables"] as? [String: Any] ?? [:]
     var variablesConverted = [String: JSONValue]()
     for (key, value) in vars {
-      if let jsonValue = JSONValue.from(any: value) {
+      if let jsonValue = JSONValue(json: value) {
         variablesConverted[key] = jsonValue
       } else {
         variablesConverted[key] = .null

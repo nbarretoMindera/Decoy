@@ -1,6 +1,6 @@
 import Foundation
 
-public enum JSONValue: Codable, Hashable {
+public enum JSONValue: Codable, Hashable, CustomStringConvertible {
   case string(String)
   case number(Double)
   case bool(Bool)
@@ -28,6 +28,32 @@ public enum JSONValue: Codable, Hashable {
     }
   }
 
+  // A human-friendly description of the JSON value, used when generating a GraphQLSignature.
+  public var description: String {
+    switch self {
+    case .string(let value):
+      return value
+    case .number(let value):
+      if value.truncatingRemainder(dividingBy: 1) == 0 {
+        return String(format: "%.0f", value)
+      } else {
+        return String(value)
+      }
+    case .bool(let value):
+      return String(value)
+    case .array(let array):
+      let items = array.map { $0.description }
+      return "[" + items.joined(separator: ", ") + "]"
+    case .object(let dict):
+      let items = dict
+        .sorted(by: { $0.key < $1.key })
+        .map { "\($0.key): \($0.value)" }
+      return "{" + items.joined(separator: ", ") + "}"
+    case .null:
+      return "null"
+    }
+  }
+
   // Encode using standard Codable.
   public func encode(to encoder: Encoder) throws {
     var container = encoder.singleValueContainer()
@@ -42,22 +68,37 @@ public enum JSONValue: Codable, Hashable {
   }
 
   // Helper to create a JSONValue from an arbitrary value.
-  public static func from(any: Any) -> JSONValue? {
-    switch any {
-    case let value as String: return .string(value)
-    case let value as Int: return .number(Double(value))
-    case let value as Double: return .number(value)
-    case let value as Bool: return .bool(value)
-    case let value as [Any]: return .array(value.compactMap { JSONValue.from(any: $0) })
+  public init?(json: Any) {
+    switch json {
+    case let value as String:
+      self = .string(value)
+    case let value as Bool:
+      self = .bool(value)
+    case let value as Int:
+      self = .number(Double(value))
+    case let value as Double:
+      self = .number(value)
     case let value as [String: Any]:
-      var dict = [String: JSONValue]()
+      var obj = [String: JSONValue]()
       for (k, v) in value {
-        if let jsonValue = JSONValue.from(any: v) {
-          dict[k] = jsonValue
-        }
+        guard let vParsed = JSONValue(json: v) else { continue }
+        obj[k] = vParsed
       }
-      return .object(dict)
-    default: return nil
+      self = .object(obj)
+    case let value as [Any]:
+      self = .array(value.compactMap { JSONValue(json: $0) })
+    case _ as NSNull:
+      self = .null
+    case let value as NSNumber:
+      // NSNumber might be a Bool masquerading as a number.
+      let boolType = CFGetTypeID(value) == CFBooleanGetTypeID()
+      if boolType {
+        self = .bool(value.boolValue)
+      } else {
+        self = .number(value.doubleValue)
+      }
+    default:
+      return nil
     }
   }
 }
