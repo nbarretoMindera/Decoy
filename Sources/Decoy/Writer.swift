@@ -32,7 +32,7 @@ class Writer: WriterInterface {
   private let fileManager: FileManager
 
   /// A shared global serial dispatch queue used to synchronize file write operations across all `Writer` instances.
-  private static let globalQueue = DispatchQueue(label: "com.yourapp.globalWriterQueue")
+  private static let globalQueue = DispatchQueue(label: "com.decoy.globalWriterQueue")
 
   /// Initializes a new `Writer` instance.
   ///

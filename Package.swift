@@ -45,7 +45,10 @@ let package = Package(
     ),
     .testTarget(
       name: "DecoyIntegrationTests",
-      dependencies: ["Decoy"]
+      dependencies: [
+        "Decoy",
+        "DecoyApollo"
+      ]
     ),
     .testTarget(
       name: "DecoyApolloTests",
