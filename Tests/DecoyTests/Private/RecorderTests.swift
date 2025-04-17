@@ -91,7 +91,7 @@ final class RecorderTests: XCTestCase {
         XCTFail("Recorded JSON is not valid")
       }
 
-      XCTAssertEqual(mock["responseCode"] as? Int, 123)
+      XCTAssertEqual(mock["statusCode"] as? Int, 123)
 
       expectation.fulfill()
     }
@@ -121,7 +121,7 @@ final class RecorderTests: XCTestCase {
         XCTFail("Recorded JSON is not valid")
       }
 
-      XCTAssertEqual(mock["responseCode"] as? Int, 123)
+      XCTAssertEqual(mock["statusCode"] as? Int, 123)
 
       expectation.fulfill()
     }

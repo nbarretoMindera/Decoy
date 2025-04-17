@@ -7,7 +7,7 @@ class MockRecorder: RecorderInterface {
   var mockedShouldRecord: Bool = false
   var shouldRecord: Bool { mockedShouldRecord }
 
-  func record(identifier: Stub.Identifier, data: Data?, response: URLResponse?, error: Error?) {
+  func record(identifier: Stub.Identifier, data: Data?, response: HTTPURLResponse?, error: Error?) {
     recordCallCount += 1
     recordings.insert(["url": identifier.stringValue], at: 0)
   }

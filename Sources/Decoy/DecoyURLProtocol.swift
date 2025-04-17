@@ -65,19 +65,21 @@ private extension DecoyURLProtocol {
     let liveSession = DecoyURLProtocol.liveSessionProvider()
 
     let task = liveSession.dataTask(with: request) { data, response, error in
+      if let response = response {
+        self.client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+      }
+      if let data = data {
+        self.client?.urlProtocol(self, didLoad: data)
+      }
       if let error = error {
         self.client?.urlProtocol(self, didFailWithError: error)
       } else {
-        if let response = response {
-          self.client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
-        }
-        if let data = data {
-          self.client?.urlProtocol(self, didLoad: data)
-        }
-        if Decoy.mode() == .record, Decoy.recorder.shouldRecord {
-          Decoy.recorder.record(identifier: .url(url), data: data, response: response, error: error)
-        }
         self.client?.urlProtocolDidFinishLoading(self)
+      }
+
+      // Record the response if in record mode
+      if Decoy.mode() == .record, Decoy.recorder.shouldRecord {
+        Decoy.recorder.record(identifier: .url(url), data: data, response: response as? HTTPURLResponse, error: error)
       }
     }
     task.resume()

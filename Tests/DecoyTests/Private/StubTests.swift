@@ -42,7 +42,7 @@ final class StubTests: XCTestCase {
 
     let result = Stub.asJSON
     let resultMock = result["mock"] as? [String: Any]
-    XCTAssertEqual(resultMock?["responseCode"] as? Int, 456)
+    XCTAssertEqual(resultMock?["statusCode"] as? Int, 456)
   }
 
   func test_asJSON_shouldReturnMockWithError_whenResponseHasError() {

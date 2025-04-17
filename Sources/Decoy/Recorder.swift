@@ -14,9 +14,9 @@ public protocol RecorderInterface {
   /// - Parameters:
   ///   - identifierurl: The `Identifier` associated with the network request, either a URL or a GraphQL signature.
   ///   - data: The optional response data returned from the request.
-  ///   - response: The optional `URLResponse` containing metadata such as status code.
+  ///   - response: The optional `HTTPURLResponse` containing metadata such as status code.
   ///   - error: An optional `Error` encountered during the network call.
-  func record(identifier: Stub.Identifier, data: Data?, response: URLResponse?, error: Error?)
+  func record(identifier: Stub.Identifier, data: Data?, response: HTTPURLResponse?, error: Error?)
 }
 
 /// A concrete implementation of `RecorderInterface` that captures network requests
@@ -71,13 +71,13 @@ public class Recorder: RecorderInterface {
   ///   - response: The URLResponse containing metadata (e.g. status code) from the network call.
   ///   - error: An error encountered during the network call.
   ///            (Currently, error information is not recorded; you can extend this as needed.)
-  public func record(identifier: Stub.Identifier, data: Data?, response: URLResponse?, error: Error?) {
+  public func record(identifier: Stub.Identifier, data: Data?, response: HTTPURLResponse?, error: Error?) {
     localQueue.async {
       let stub = Stub(
         identifier: identifier,
         response: Stub.Response(
           data: data,
-          urlResponse: response as? HTTPURLResponse,
+          urlResponse: response,
           error: nil // Extend error handling as needed.
         )
       )

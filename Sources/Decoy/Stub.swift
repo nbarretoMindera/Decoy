@@ -66,13 +66,15 @@ public struct Stub {
     if let data = response.data, let jsonObj = try? JSONSerialization.jsonObject(with: data) {
       mock["json"] = jsonObj
     }
-    if let code = response.urlResponse?.statusCode {
-      mock["responseCode"] = code
+    if let urlResponse = response.urlResponse {
+      mock["statusCode"] = urlResponse.statusCode
+      mock["headerFields"] = urlResponse.allHeaderFields as? [String: String]
     }
     if let error = response.error {
       mock["error"] = error
     }
     jsonDict["mock"] = mock
+
     return jsonDict
   }
 }
