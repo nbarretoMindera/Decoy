@@ -15,9 +15,9 @@ public struct Stub {
         guard let url = URL(string: urlString) else { return nil }
         self = .url(url)
       case "signature":
-        guard let signatureJSON = json["identifier"] as? [String: Any] else { return nil }
-        guard let signature = GraphQLSignature(json: signatureJSON) else { return nil }
-        self = .signature(signature)
+        guard let signatureJson = json["signature"] as? [String: Any] else { return nil }
+        guard let sig = GraphQLSignature(json: signatureJson) else { return nil }
+        self = .signature(sig)
       default:
         return nil
       }
@@ -54,9 +54,15 @@ public struct Stub {
     // Use the identifier's string representation.
     if case .url = identifier {
       jsonDict["type"] = "url"
-    } else if case .signature(let graphQLSignature) = identifier {
+    } else if case .signature(let signature) = identifier {
       jsonDict["type"] = "signature"
-      jsonDict["endpoint"] = graphQLSignature.endpoint.absoluteString
+      jsonDict["identifier"] = signature.description
+      jsonDict["signature"] = [
+        "operationName": signature.operationName,
+        "query": signature.query,
+        "endpoint": signature.endpoint.absoluteString,
+        "variables": signature.variables.mapValues { $0.description }
+      ]
     } else {
       fatalError("Attempted to record a stub with an invalid identifier.")
     }
