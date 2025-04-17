@@ -1,26 +1,35 @@
 import Apollo
-import ApolloAPI
 @testable import Decoy
-import DecoyApollo
 import XCTest
 
 class GraphQLInterceptorIntegrationTests: XCTestCase {
-  func test_apolloClient_decoyInterceptorRecordsAndReplays() throws {
-    let fileURL = FileManager.default.temporaryDirectory.appendingPathComponent("graphql-mock.json")
+  var fileURL: URL!
+  var processInfo: MockProcessInfo!
 
-    let processInfo = MockProcessInfo()
+  override func setUpWithError() throws {
+    try super.setUpWithError()
+
+    fileURL = FileManager.default.temporaryDirectory.appendingPathComponent("graphql-mock.json")
+
+    processInfo = MockProcessInfo()
     processInfo.mockedIsRunningXCUI = true
     processInfo.mockedEnvironment = [
       Decoy.Constants.isXCUI: "true",
       Decoy.Constants.mode: "record",
-      Decoy.Constants.mockDirectory: FileManager.default.temporaryDirectory.path,
+      Decoy.Constants.mockDirectory: FileManager.default.temporaryDirectory.absoluteString,
       Decoy.Constants.mockFilename: fileURL.lastPathComponent
     ]
 
-    // Clear and set up Decoy
     Decoy.queue.clear()
     Decoy.setUp(processInfo: processInfo)
+  }
 
+  override func tearDown() {
+    try? FileManager.default.removeItem(at: fileURL)
+    super.tearDown()
+  }
+
+  func test_apolloClient_decoyInterceptor_recordsAndReplays() throws {
     // Apollo client setup
     let store = ApolloStore()
     let client = URLSessionClient()
@@ -65,95 +74,118 @@ class GraphQLInterceptorIntegrationTests: XCTestCase {
 
     wait(for: [replayExpectation], timeout: 3)
   }
-}
 
-final class TestInterceptorProvider: InterceptorProvider {
-  let store: ApolloStore
-  let client: URLSessionClient
+  func test_apolloClient_decoyInterceptor_recordsAndReplays_multipleRequests() throws {
+    fileURL = FileManager.default.temporaryDirectory.appendingPathComponent("graphql-multi-mock.json")
 
-  init(store: ApolloStore, client: URLSessionClient) {
-    self.store = store
-    self.client = client
-  }
-
-  func interceptors<Operation: GraphQLOperation>(
-    for operation: Operation
-  ) -> [ApolloInterceptor] {
-    return [
-      DecoyInterceptor(),
-      MockNetworkFetchInterceptor(),
-      MaxRetryInterceptor(),
-      CacheReadInterceptor(store: store),
-      NetworkFetchInterceptor(client: client),
-      ResponseCodeInterceptor(),
-      JSONResponseParsingInterceptor(),
-      AutomaticPersistedQueryInterceptor(),
-      CacheWriteInterceptor(store: store)
+    processInfo.mockedEnvironment = [
+      Decoy.Constants.isXCUI: "true",
+      Decoy.Constants.mode: "record",
+      Decoy.Constants.mockDirectory: FileManager.default.temporaryDirectory.path,
+      Decoy.Constants.mockFilename: fileURL.lastPathComponent
     ]
-  }
-}
 
-final class MockGraphQLOperation: GraphQLQuery {
-  typealias Data = MockSelectionSet
+    Decoy.queue.clear()
+    Decoy.setUp(processInfo: processInfo)
 
-  static var operationName: String = "TestQuery"
-  static var operationType: ApolloAPI.GraphQLOperationType = .query
-  static var operationDocument: ApolloAPI.OperationDocument = OperationDocument(
-    operationIdentifier: "TestQuery",
-    definition: OperationDefinition("query TestQuery { testField }")
-  )
+    let store = ApolloStore()
+    let client = URLSessionClient()
+    let provider = TestInterceptorProvider(store: store, client: client)
+    let transport = RequestChainNetworkTransport(
+      interceptorProvider: provider,
+      endpointURL: URL(string: "https://example.com/graphql")!
+    )
+    let apollo = ApolloClient(networkTransport: transport, store: store)
 
-  var operationName: String { Self.operationName }
+    let query1 = MockGraphQLOperation(variableValues: ["var1": "value1"])
+    let query2 = MockGraphQLOperation(variableValues: ["var2": "value2"])
 
-  init() {}
-}
+    let recordExp1 = expectation(description: "Record query1")
+    let recordExp2 = expectation(description: "Record query2")
 
-final class MockSelectionSet: RootSelectionSet {
-  typealias Schema = MockSchemaMetadata
-  static var __parentType: any ApolloAPI.ParentType = MockParentType()
-  var __data: ApolloAPI.DataDict
-
-  required init(_dataDict: ApolloAPI.DataDict) {
-    self.__data = _dataDict
-  }
-
-  static var selections: [Selection] {
-    [Selection.field("testField", String.self)]
-  }
-}
-
-final class MockParentType: ParentType {
-  var __typename: String = "Query"
-  func canBeConverted(from objectType: ApolloAPI.Object) -> Bool { true }
-}
-
-final class MockSchemaMetadata: SchemaMetadata {
-  static var configuration: any SchemaConfiguration.Type = MockSchemaConfiguration.self
-  static func objectType(forTypename typename: String) -> ApolloAPI.Object? { nil }
-}
-
-final class MockSchemaConfiguration: SchemaConfiguration {
-  static func cacheKeyInfo(for type: ApolloAPI.Object, object: ApolloAPI.ObjectData) -> CacheKeyInfo? { nil }
-}
-
-final class MockNetworkFetchInterceptor: ApolloInterceptor {
-  var id: String {
-    "k"
-  }
-
-  func interceptAsync<Operation>(
-    chain: RequestChain,
-    request: HTTPRequest<Operation>,
-    response: HTTPResponse<Operation>?,
-    completion: @escaping (Result<GraphQLResult<Operation.Data>, Error>) -> Void
-  ) where Operation: GraphQLOperation {
-    let json: JSONObject = ["data": ["testField": "stubbed-value"]]
-    let graphQLResponse = GraphQLResponse(operation: request.operation, body: json)
-    do {
-      let (result, _) = try graphQLResponse.parseResult()
-      completion(.success(result))
-    } catch {
-      completion(.failure(error))
+    apollo.fetch(query: query1) { result in
+      if case .failure(let error) = result {
+        XCTFail("Query1 failed: \(error)")
+      }
+      recordExp1.fulfill()
     }
+
+    apollo.fetch(query: query2) { result in
+      if case .failure(let error) = result {
+        XCTFail("Query2 failed: \(error)")
+      }
+      recordExp2.fulfill()
+    }
+
+    wait(for: [recordExp1, recordExp2], timeout: 5)
+    WriteWaiter.waitForMocksToBeWritten(at: fileURL)
+
+    // Switch to forceOffline
+    processInfo.mockedEnvironment?[Decoy.Constants.mode] = "forceOffline"
+    Decoy.setUp(processInfo: processInfo)
+
+    let replayExp1 = expectation(description: "Replay query1")
+    let replayExp2 = expectation(description: "Replay query2")
+
+    apollo.fetch(query: query1) { result in
+      switch result {
+      case .success(let result):
+        XCTAssertNotNil(result.data)
+      case .failure(let error):
+        XCTFail("Replay query1 failed: \(error)")
+      }
+      replayExp1.fulfill()
+    }
+
+    apollo.fetch(query: query2) { result in
+      switch result {
+      case .success(let result):
+        XCTAssertNotNil(result.data)
+      case .failure(let error):
+        XCTFail("Replay query2 failed: \(error)")
+      }
+      replayExp2.fulfill()
+    }
+
+    wait(for: [replayExp1, replayExp2], timeout: 5)
+  }
+
+  func test_apolloClient_decoyInterceptor_forceOfflineFailsWithoutMock() throws {
+    fileURL = FileManager.default.temporaryDirectory.appendingPathComponent("graphql-forceoffline-error.json")
+
+    processInfo.mockedEnvironment = [
+      Decoy.Constants.isXCUI: "true",
+      Decoy.Constants.mode: "forceOffline",
+      Decoy.Constants.mockDirectory: FileManager.default.temporaryDirectory.path,
+      Decoy.Constants.mockFilename: fileURL.lastPathComponent
+    ]
+
+    Decoy.queue.clear()
+    Decoy.setUp(processInfo: processInfo)
+
+    let store = ApolloStore()
+    let client = URLSessionClient()
+    let provider = TestInterceptorProvider(store: store, client: client)
+    let transport = RequestChainNetworkTransport(
+      interceptorProvider: provider,
+      endpointURL: URL(string: "https://example.com/graphql")!
+    )
+    let apollo = ApolloClient(networkTransport: transport, store: store)
+
+    let missingQuery = MockGraphQLOperation(variableValues: ["nonexistent": "true"])
+    let expectation = expectation(description: "Request should fail in forceOffline without a mock")
+
+    apollo.fetch(query: missingQuery) { result in
+      switch result {
+      case .success:
+        XCTFail("Expected failure, but got success")
+      case .failure(let error):
+        let message = String(describing: error)
+        XCTAssertTrue(message.contains("No mock available"), "Unexpected error: \(message)")
+      }
+      expectation.fulfill()
+    }
+
+    wait(for: [expectation], timeout: 3)
   }
 }

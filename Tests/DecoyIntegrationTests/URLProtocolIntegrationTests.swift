@@ -6,7 +6,8 @@ class URLProtocolIntegrationTests: XCTestCase {
 
   override func setUpWithError() throws {
     try super.setUpWithError()
-    fileURL = FileManager.default.temporaryDirectory.appendingPathComponent("mock.json")
+
+    fileURL = FileManager.default.temporaryDirectory.appendingPathComponent("url-protocol-mock.json")
 
     let processInfo = MockProcessInfo()
     processInfo.mockedIsRunningXCUI = true
