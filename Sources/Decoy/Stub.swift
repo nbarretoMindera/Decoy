@@ -56,7 +56,7 @@ public struct Stub {
       jsonDict["type"] = "url"
     } else if case .signature(let graphQLSignature) = identifier {
       jsonDict["type"] = "signature"
-      jsonDict["endpoint"] = graphQLSignature.endpoint
+      jsonDict["endpoint"] = graphQLSignature.endpoint.absoluteString
     } else {
       fatalError("Attempted to record a stub with an invalid identifier.")
     }
