@@ -15,10 +15,6 @@ class URLProtocolIntegrationTests: XCTestCase {
     tempDir = FileManager.default.temporaryDirectory
     fileURL = tempDir.appendingPathComponent(filename)
 
-    print(filename!)
-    print(tempDir.absoluteString)
-    print(fileURL.absoluteString)
-
     let processInfo = MockProcessInfo()
     processInfo.mockedIsRunningXCUI = true
     processInfo.mockedEnvironment = [
@@ -64,10 +60,6 @@ class URLProtocolIntegrationTests: XCTestCase {
 
     // Since mocks are written on a queue, we need a slight delay in the test to simulate real behaviour.
     RecorderWaiter.waitForFlush()
-
-    print("IN TEST ABOUT TO LOAD -----")
-    print(fileURL.absoluteString)
-    print("IN TEST ABOUT TO LOAD -----")
 
     // Verify that we can load the stubs which have now been read from the URLSession, recorded, and written to disk.
     guard let stubs = Loader().loadJSON(from: fileURL), let stub = stubs.first else {
