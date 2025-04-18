@@ -107,6 +107,17 @@ public enum Decoy {
     }
   }
 
+  /// Used to clear shared state between tests.
+  public static func reset() {
+    queue.clear()
+    recorder = Recorder()
+    DecoyURLProtocol.liveSessionProvider = {
+      let config = URLSessionConfiguration.default
+      config.protocolClasses = config.protocolClasses?.filter { $0 != DecoyURLProtocol.self }
+      return URLSession(configuration: config)
+    }
+  }
+
   /// Returns a URLSession configured to intercept network requests.
   ///
   /// When running in UI tests, your app should use this session so that all network requests

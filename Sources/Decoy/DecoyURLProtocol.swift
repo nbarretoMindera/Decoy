@@ -78,7 +78,7 @@ private extension DecoyURLProtocol {
       }
 
       // Record the response if in record mode
-      if Decoy.mode() == .record, Decoy.recorder.shouldRecord {
+      if Decoy.mode() == .record {
         Decoy.recorder.record(identifier: .url(url), data: data, response: response as? HTTPURLResponse, error: error)
       }
     }

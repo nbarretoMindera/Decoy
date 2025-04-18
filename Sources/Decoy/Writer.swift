@@ -9,6 +9,8 @@ protocol WriterInterface {
   /// - Parameter recording: A dictionary representation of a recorded network interaction.
   /// - Throws: An error if appending the recording fails (for example, due to a missing file path or serialization issues).
   func append(recording: [String: Any]) throws
+
+  func flush(completion: @escaping () -> Void)
 }
 
 /// An enumeration of possible errors encountered during file write operations.
@@ -92,6 +94,12 @@ class Writer: WriterInterface {
       if let recordingIdentifier = recording["identifier"] as? String {
         Decoy.logInfo("Wrote recording for \(recordingIdentifier)")
       }
+    }
+  }
+
+  public func flush(completion: @escaping () -> Void) {
+    Writer.globalQueue.async {
+      completion()
     }
   }
 }

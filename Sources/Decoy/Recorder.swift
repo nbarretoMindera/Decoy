@@ -17,6 +17,9 @@ public protocol RecorderInterface {
   ///   - response: The optional `HTTPURLResponse` containing metadata such as status code.
   ///   - error: An optional `Error` encountered during the network call.
   func record(identifier: Stub.Identifier, data: Data?, response: HTTPURLResponse?, error: Error?)
+
+  /// Used only in tests to flush the writer queue for assertions.
+  func flush(completion: @escaping () -> Void)
 }
 
 /// A concrete implementation of `RecorderInterface` that captures network requests
@@ -82,8 +85,16 @@ public class Recorder: RecorderInterface {
         )
       )
       // Immediately append the new recording to the file using the shared writer.
-      try? self.writer.append(recording: stub.asJSON)
+      try self.writer.append(recording: stub.asJSON)
       Decoy.logInfo("Recorded decoy for: \(identifier.stringValue)")
+    }
+  }
+
+  public func flush(completion: @escaping () -> Void) {
+    localQueue.async {
+      self.writer.flush {
+        completion()
+      }
     }
   }
 }

@@ -9,4 +9,6 @@ class MockWriter: WriterInterface {
     appendWasCalled = true
     appendedRecordings.append(recording)
   }
+
+  func flush(completion: @escaping () -> Void) { completion() }
 }

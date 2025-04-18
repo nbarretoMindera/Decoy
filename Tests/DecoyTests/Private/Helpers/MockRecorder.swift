@@ -11,4 +11,6 @@ class MockRecorder: RecorderInterface {
     recordCallCount += 1
     recordings.insert(["url": identifier.stringValue], at: 0)
   }
+
+  func flush(completion: @escaping () -> Void) { completion() }
 }

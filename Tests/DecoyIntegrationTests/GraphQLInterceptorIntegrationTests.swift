@@ -54,7 +54,7 @@ class GraphQLInterceptorIntegrationTests: XCTestCase {
     }
 
     wait(for: [recordExpectation], timeout: 3)
-    WriteWaiter.waitForMocksToBeWritten(at: fileURL)
+    RecorderWaiter.waitForFlush()
 
     // Switch to forceOffline mode and run again
     processInfo.mockedEnvironment?[Decoy.Constants.mode] = "forceOffline"
@@ -118,7 +118,7 @@ class GraphQLInterceptorIntegrationTests: XCTestCase {
     }
 
     wait(for: [recordExp1, recordExp2], timeout: 5)
-    WriteWaiter.waitForMocksToBeWritten(at: fileURL)
+    RecorderWaiter.waitForFlush()
 
     // Switch to forceOffline
     processInfo.mockedEnvironment?[Decoy.Constants.mode] = "forceOffline"
