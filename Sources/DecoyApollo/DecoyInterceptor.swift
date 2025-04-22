@@ -5,6 +5,7 @@ import Foundation
 
 /// Potential errors returned in the case of failure.
 public enum DecoyInterceptorError: Error {
+  case stubNotFoundInForceOfflineMode
   case recordedStubContainsNoData
   case couldNotParseToJSON
   case invalidURLRequest
@@ -86,6 +87,16 @@ public class DecoyInterceptor: ApolloInterceptor {
         // If an error occurs during stub conversion, complete with the error.
         return completion(.failure(error))
       }
+    }
+
+    // If no queue was available but we're forcing offline, return with an error.
+    if decoy.mode == .forceOffline {
+      return chain.handleErrorAsync(
+        DecoyInterceptorError.stubNotFoundInForceOfflineMode,
+        request: request,
+        response: response,
+        completion: completion
+      )
     }
 
     // If no stub is available, proceed with the live network request.

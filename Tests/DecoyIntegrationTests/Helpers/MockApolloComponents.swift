@@ -80,17 +80,19 @@ final class MockNetworkFetchInterceptor: ApolloInterceptor {
 final class TestInterceptorProvider: InterceptorProvider {
   let store: ApolloStore
   let client: URLSessionClient
+  let decoy: Decoy
 
-  init(store: ApolloStore, client: URLSessionClient) {
+  init(store: ApolloStore, client: URLSessionClient, decoy: Decoy) {
     self.store = store
     self.client = client
+    self.decoy = decoy
   }
 
   func interceptors<Operation: GraphQLOperation>(
     for operation: Operation
   ) -> [ApolloInterceptor] {
     return [
-      DecoyInterceptor(decoy: Decoy()),
+      DecoyInterceptor(decoy: decoy),
       MockNetworkFetchInterceptor(),
       MaxRetryInterceptor(),
       CacheReadInterceptor(store: store),
