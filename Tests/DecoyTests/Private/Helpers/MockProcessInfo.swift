@@ -6,7 +6,8 @@ class MockProcessInfo: ProcessInfo, @unchecked Sendable {
   var mockedEnvironment: [String: String]?
 
   override var environment: [String: String] {
-    if let mockedEnvironment {
+    if var mockedEnvironment {
+      mockedEnvironment[Decoy.Constants.isXCUI] = String(mockedIsRunningXCUI)
       return mockedEnvironment
     } else {
       return [

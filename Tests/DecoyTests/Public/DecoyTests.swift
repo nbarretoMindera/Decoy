@@ -104,9 +104,9 @@ final class DecoyTests: XCTestCase {
     let url = Bundle.testing()!
 
     let processInfo = MockProcessInfo()
+    processInfo.mockedIsRunningXCUI = true
     processInfo.mockedEnvironment = [
       Decoy.Constants.mode: "record",
-      Decoy.Constants.isXCUI: "true",
       Decoy.Constants.mockDirectory: url.absoluteString,
       Decoy.Constants.mockFilename: "LoaderTest.json"
     ]

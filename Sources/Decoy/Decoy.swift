@@ -79,7 +79,7 @@ public class Decoy {
     let isXCUI = true
 
     self.init(
-      recorder: Recorder(processInfo: .processInfo, writer: Writer(processInfo: .processInfo, logger: logger), logger: logger),
+      recorder: Recorder(processInfo: processInfo, writer: Writer(processInfo: processInfo, logger: logger), logger: logger),
       queue: Queue(isXCUI: isXCUI, logger: logger),
       loader: Loader(isXCUI: isXCUI),
       logger: logger,
