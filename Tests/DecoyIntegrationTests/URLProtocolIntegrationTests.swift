@@ -187,7 +187,6 @@ class URLProtocolIntegrationTests: XCTestCase {
     let processInfo = MockProcessInfo()
     processInfo.mockedIsRunningXCUI = true
     processInfo.mockedEnvironment = [
-      Decoy.Constants.isXCUI: "true",
       Decoy.Constants.mode: "forceOffline",
       Decoy.Constants.mockDirectory: tempDir.absoluteString,
       Decoy.Constants.mockFilename: filename
@@ -195,6 +194,15 @@ class URLProtocolIntegrationTests: XCTestCase {
 
     decoy = Decoy(processInfo: processInfo)
     decoy.setUp()
+
+    DecoyURLProtocol.register(decoy: decoy)
+
+    MockURLProtocol.dataToReturn = nil
+    DecoyURLProtocol.liveSessionProvider = {
+      let config = URLSessionConfiguration.ephemeral
+      config.protocolClasses = [MockURLProtocol.self]
+      return URLSession(configuration: config)
+    }
 
     // Create a session using DecoyURLProtocol
     let config = URLSessionConfiguration.ephemeral
@@ -221,26 +229,26 @@ class URLProtocolIntegrationTests: XCTestCase {
   }
 
   func test_decoyURLProtocol_usesStubInLiveIfUnmockedMode() {
+    MockURLProtocol.dataToReturn = "{ \"result\": { \"a\": \"stub\" } }".data(using: .utf8)!
+    DecoyURLProtocol.liveSessionProvider = {
+      let config = URLSessionConfiguration.ephemeral
+      config.protocolClasses = [MockURLProtocol.self]
+      return URLSession(configuration: config)
+    }
+
     let processInfo = MockProcessInfo()
     processInfo.mockedIsRunningXCUI = true
     processInfo.mockedEnvironment = [
-      Decoy.Constants.isXCUI: "true",
       Decoy.Constants.mode: "liveIfUnmocked",
       Decoy.Constants.mockDirectory: tempDir.absoluteString,
       Decoy.Constants.mockFilename: filename
     ]
 
-    let data = """
-      { "result": { "a": "stub" } }
-    """.data(using: .utf8)!
-
-    print(try? JSONSerialization.jsonObject(with: data))
-
     let stubbedURL = URL(string: "https://example.com/api/stubbed")!
     let stub = Stub(
       identifier: .url(stubbedURL),
       response: Stub.Response(
-        data: data,
+        data: MockURLProtocol.dataToReturn!,
         urlResponse: HTTPURLResponse(
           url: stubbedURL,
           statusCode: 200,
@@ -253,6 +261,7 @@ class URLProtocolIntegrationTests: XCTestCase {
 
     decoy = Decoy(processInfo: processInfo)
     decoy.queue.queue(stub: stub)
+    decoy.setUp()
 
     let config = URLSessionConfiguration.ephemeral
     config.protocolClasses = [DecoyURLProtocol.self]
@@ -261,14 +270,10 @@ class URLProtocolIntegrationTests: XCTestCase {
     let expectation = XCTestExpectation(description: "Stubbed request completes")
 
     session.dataTask(with: URLRequest(url: stubbedURL)) { data, _, _ in
-      print(try? JSONSerialization.jsonObject(with: data!))
-
-      guard
-        let data = data,
-        let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-        let result = json["result"] as? [String: Any],
-        let value = result["a"] as? String
-      else {
+      guard let data = data,
+            let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+            let result = json["result"] as? [String: Any],
+            let value = result["a"] as? String else {
         return XCTFail("Failed to decode stubbed response")
       }
 
