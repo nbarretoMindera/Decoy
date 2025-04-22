@@ -226,7 +226,7 @@ public class Decoy {
   /// mock responses are returned or live responses are recorded as needed.
   ///
   /// - Note: This session configuration prepends Decoy's protocol to the session's protocol classes.
-  public static var urlSession: URLSession {
+  public var urlSession: URLSession {
     let config = URLSessionConfiguration.default
     // Prepend Decoy's interception mechanism (e.g., DecoyURLProtocol) to intercept requests.
     config.protocolClasses?.insert(DecoyURLProtocol.self, at: 0)
@@ -237,7 +237,16 @@ public class Decoy {
   ///
   /// This property reads the `DECOY_IS_XCUI` environment variable and returns `true` if it is set to `"true"`.
   /// It is used internally to determine whether to activate Decoy's mocking behavior.
-  public var isXCUI: Bool {
+  var isXCUI: Bool {
+    processInfo.environment[Constants.isXCUI] == "true"
+  }
+
+  /// Indicates whether the app is running in a UI test environment without needing to instantiate a Decoy instance.
+  ///
+  /// This property reads the `DECOY_IS_XCUI` environment variable from the provided `ProcessInfo`
+  /// and returns `true` if it is set to `"true"`. It is used in app codebases to early exit from Decoy without needing
+  /// to instantiate it.
+  public static func isXCUI(processInfo: ProcessInfo = .processInfo) -> Bool {
     processInfo.environment[Constants.isXCUI] == "true"
   }
 }

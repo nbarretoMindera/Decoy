@@ -16,7 +16,7 @@ struct DecoyExampleApp: App {
   /// use your normal `URLSession`, in this instance the default `.shared` instance.
   var api: APIClient {
     if Decoy.isXCUI() {
-      return APIClient(session: Decoy.urlSession)
+      return APIClient(session: appDelegate.decoy.urlSession)
     } else {
       return APIClient(session: .shared)
     }
@@ -24,13 +24,18 @@ struct DecoyExampleApp: App {
 }
 
 class AppDelegate: NSObject, UIApplicationDelegate {
+  var decoy: Decoy!
+
   func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil
   ) -> Bool {
-    /// As early as possible in your app launch process, call `Decoy.setUp()`. This will set up Decoy to begin intercepting
-    /// traffic to that session.
-    Decoy.setUp()
+    /// As early as possible in your app launch process, instantiate Decoy and call `setUp()`.
+    /// This will set up Decoy to begin intercepting traffic.
+    decoy = Decoy()
+    decoy.setUp()
+    DecoyURLProtocol.register(decoy: decoy)
+
     return true
   }
 }
