@@ -9,7 +9,7 @@ final class WriterTests: XCTestCase {
       Decoy.Constants.mockFilename: "A"
     ]
 
-    XCTAssertThrowsError(try Writer(processInfo: processInfo).append(recording: [:])) { error in
+    XCTAssertThrowsError(try Writer(processInfo: processInfo, logger: Logger()).append(recording: [:])) { error in
       XCTAssertEqual(error as? WriterError, .filePathNotFound)
     }
   }
@@ -20,7 +20,7 @@ final class WriterTests: XCTestCase {
       Decoy.Constants.mockDirectory: "A"
     ]
 
-    XCTAssertThrowsError(try Writer(processInfo: processInfo).append(recording: [:])) { error in
+    XCTAssertThrowsError(try Writer(processInfo: processInfo, logger: Logger()).append(recording: [:])) { error in
       XCTAssertEqual(error as? WriterError, .filePathNotFound)
     }
   }
@@ -29,7 +29,7 @@ final class WriterTests: XCTestCase {
     let processInfo = MockProcessInfo()
     processInfo.mockedEnvironment = [:]
 
-    XCTAssertThrowsError(try Writer(processInfo: processInfo).append(recording: [:])) { error in
+    XCTAssertThrowsError(try Writer(processInfo: processInfo, logger: Logger()).append(recording: [:])) { error in
       XCTAssertEqual(error as? WriterError, .filePathNotFound)
     }
   }
@@ -43,7 +43,7 @@ final class WriterTests: XCTestCase {
       Decoy.Constants.mockFilename: "B"
     ]
 
-    try? Writer(processInfo: processInfo, fileManager: fileManager).append(recording: [:])
+    try? Writer(processInfo: processInfo, fileManager: fileManager, logger: Logger()).append(recording: [:])
 
     XCTAssert(fileManager.didCallCreateDirectory)
   }

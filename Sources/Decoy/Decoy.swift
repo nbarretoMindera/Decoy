@@ -8,7 +8,7 @@ import Foundation
 /// Decoy works by loading mocks from disk (via a Loader), queuing them for later retrieval,
 /// and using either a custom URLProtocol, Apollo interceptors, or another network interception mechanism
 /// to intercept requests and return either the queued mock or a live response (depending on the operating mode).
-public enum Decoy {
+public class Decoy {
   /// Constants used throughout the Decoy framework.
   public struct Constants {
     /// Environment variable key to determine if the app is running in a UI test environment.
@@ -38,34 +38,88 @@ public enum Decoy {
   ///
   /// Mocks are enqueued as `Stub` objects keyed by their URL, allowing Decoy's interception
   /// mechanisms to retrieve and return the appropriate mock for a given request.
-  public static var queue: QueueInterface = Queue()
+  public var queue: QueueInterface
 
   /// The loader used to read mocks from a JSON file.
   ///
   /// The loader is responsible for reading a JSON file from disk, decoding its contents into an array
   /// of `Stub` objects, and returning them so they can be queued for later use.
-  static var loader: LoaderInterface = Loader()
+  var loader: LoaderInterface
 
   /// The log used to print debug statements that can be read while running tests in a separate sandbox.
-  static var logger: LoggerInterface = Logger()
+  var logger: LoggerInterface = Logger()
 
-  public static func logInfo(_ message: String) { logger.info(message) }
-  public static func logWarning(_ message: String) { logger.warning(message) }
-  public static func logError(_ message: String) { logger.error(message) }
+  public func logInfo(_ message: String) { logger.info(message) }
+  public func logWarning(_ message: String) { logger.warning(message) }
+  public func logError(_ message: String) { logger.error(message) }
 
-  public static var processInfo: ProcessInfo = .processInfo
+  public var processInfo: ProcessInfo
 
   /// The recorder that writes out live network responses.
   ///
   /// When in record mode, live responses are captured by the recorder so that they can be saved and
   /// used as mocks in future test runs.
-  public static var recorder: RecorderInterface = Recorder()
+  public let recorder: RecorderInterface
+
+  public convenience init() {
+    let logger = Logger()
+    let isXCUI = true
+
+    self.init(
+      recorder: Recorder(processInfo: .processInfo, writer: Writer(processInfo: .processInfo, logger: logger), logger: logger),
+      queue: Queue(isXCUI: isXCUI, logger: logger),
+      loader: Loader(isXCUI: isXCUI),
+      logger: logger,
+      processInfo: .processInfo
+    )
+  }
+
+  convenience init(processInfo: ProcessInfo) {
+    let logger = Logger()
+    let isXCUI = true
+
+    self.init(
+      recorder: Recorder(processInfo: .processInfo, writer: Writer(processInfo: .processInfo, logger: logger), logger: logger),
+      queue: Queue(isXCUI: isXCUI, logger: logger),
+      loader: Loader(isXCUI: isXCUI),
+      logger: logger,
+      processInfo: processInfo
+    )
+  }
+
+  convenience init(processInfo: ProcessInfo, recorder: RecorderInterface) {
+    let logger = Logger()
+    let isXCUI = true
+
+    self.init(
+      recorder: recorder,
+      queue: Queue(isXCUI: isXCUI, logger: logger),
+      loader: Loader(isXCUI: isXCUI),
+      logger: logger,
+      processInfo: processInfo
+    )
+  }
+
+  init(
+    recorder: RecorderInterface,
+    queue: QueueInterface,
+    loader: LoaderInterface,
+    logger: LoggerInterface,
+    processInfo: ProcessInfo
+  ) {
+    self.recorder = recorder
+    self.queue = queue
+    self.loader = loader
+    self.processInfo = processInfo
+
+    setUp()
+  }
 
   /// Helper to determine the operating mode from a given ProcessInfo.
   ///
   /// - Parameter processInfo: The ProcessInfo to inspect.
   /// - Returns: The Decoy mode based on the environment variable, defaulting to `.liveIfUnmocked`.
-  public static func mode(for processInfo: ProcessInfo = Decoy.processInfo) -> Decoy.Mode {
+  public var mode: Decoy.Mode {
     guard let modeString = processInfo.environment[Constants.mode] else { return .liveIfUnmocked }
     return Decoy.Mode(rawValue: modeString) ?? .liveIfUnmocked
   }
@@ -77,12 +131,9 @@ public enum Decoy {
   /// the Loader, and enqueues each stub in the Decoy queue.
   ///
   /// - Parameter processInfo: The ProcessInfo instance used to access environment variables. Defaults to `.processInfo`.
-  public static func setUp(processInfo: ProcessInfo = .processInfo) {
+  public func setUp() {
     // Only proceed if the app is running in a UI test environment.
-    guard isXCUI(processInfo: processInfo) else { return }
-
-    // Store processInfo so others can use it later and it's consistent.
-    self.processInfo = processInfo
+    guard isXCUI else { return }
 
     // Retrieve the directory and filename for the mocks from environment variables.
     guard let directory = processInfo.environment[Constants.mockDirectory],
@@ -108,9 +159,8 @@ public enum Decoy {
   }
 
   /// Used to clear shared state between tests.
-  public static func reset() {
+  public func reset() {
     queue.clear()
-    recorder = Recorder()
     DecoyURLProtocol.liveSessionProvider = {
       let config = URLSessionConfiguration.default
       config.protocolClasses = config.protocolClasses?.filter { $0 != DecoyURLProtocol.self }
@@ -135,7 +185,7 @@ public enum Decoy {
   ///
   /// - Parameter processInfo: The ProcessInfo instance used to read environment variables. Defaults to `.processInfo`.
   /// - Returns: `true` if the environment variable for UI testing is set to "true"; otherwise, `false`.
-  public static func isXCUI(processInfo: ProcessInfo = Decoy.processInfo) -> Bool {
-    return processInfo.environment[Constants.isXCUI] == "true"
+  public var isXCUI: Bool {
+    processInfo.environment[Constants.isXCUI] == "true"
   }
 }

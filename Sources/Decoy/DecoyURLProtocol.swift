@@ -11,9 +11,27 @@ public class DecoyURLProtocol: URLProtocol {
     return URLSession(configuration: config)
   }
 
+  private static var decoyInstance: Decoy?
+
+  public static func register(decoy: Decoy) {
+    decoyInstance = decoy
+  }
+
+  public static func reset() {
+    decoyInstance = nil
+  }
+
+  public static func currentDecoy() -> Decoy {
+    guard let instance = decoyInstance else {
+      fatalError("DecoyURLProtocol: No Decoy instance registered.")
+    }
+    return instance
+  }
+
+  public static var mode: Decoy.Mode = .liveIfUnmocked
+
   public override class func canInit(with request: URLRequest) -> Bool {
-    // If we're in a UI testing context, we can use this protocol. If not, skip right past it.
-    Decoy.isXCUI()
+    currentDecoy().isXCUI
   }
 
   public override class func canonicalRequest(for request: URLRequest) -> URLRequest {
@@ -30,7 +48,7 @@ public class DecoyURLProtocol: URLProtocol {
     if handleMockResponse(for: url) { return }
 
     // No mock available – decide behavior based on Decoy mode.
-    switch Decoy.mode() {
+    switch DecoyURLProtocol.currentDecoy().mode {
     case .liveIfUnmocked, .record:
       performLiveRequest(for: request, url: url)
     case .forceOffline:
@@ -43,7 +61,9 @@ public class DecoyURLProtocol: URLProtocol {
 
 private extension DecoyURLProtocol {
   func handleMockResponse(for url: URL) -> Bool {
-    if let mockResponse = Decoy.queue.nextQueuedResponse(for: .url(url)) {
+    let decoy = DecoyURLProtocol.currentDecoy()
+
+    if let mockResponse = decoy.queue.nextQueuedResponse(for: .url(url)) {
       if let data = mockResponse.data {
         client?.urlProtocol(self, didLoad: data)
       }
@@ -51,8 +71,8 @@ private extension DecoyURLProtocol {
         client?.urlProtocol(self, didReceive: urlResponse, cacheStoragePolicy: .notAllowed)
       }
 
-      if Decoy.recorder.shouldRecord {
-        Decoy.recorder.record(identifier: .url(url), data: mockResponse.data, response: mockResponse.urlResponse, error: nil)
+      if decoy.recorder.shouldRecord {
+        decoy.recorder.record(identifier: .url(url), data: mockResponse.data, response: mockResponse.urlResponse, error: nil)
       }
 
       client?.urlProtocolDidFinishLoading(self)
@@ -62,6 +82,8 @@ private extension DecoyURLProtocol {
   }
 
   func performLiveRequest(for request: URLRequest, url: URL) {
+    let decoy = DecoyURLProtocol.currentDecoy()
+
     let liveSession = DecoyURLProtocol.liveSessionProvider()
 
     let task = liveSession.dataTask(with: request) { data, response, error in
@@ -78,8 +100,8 @@ private extension DecoyURLProtocol {
       }
 
       // Record the response if in record mode
-      if Decoy.mode() == .record {
-        Decoy.recorder.record(identifier: .url(url), data: data, response: response as? HTTPURLResponse, error: error)
+      if decoy.mode == .record {
+        decoy.recorder.record(identifier: .url(url), data: data, response: response as? HTTPURLResponse, error: error)
       }
     }
     task.resume()

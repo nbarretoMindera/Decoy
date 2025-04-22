@@ -5,7 +5,6 @@ import Foundation
 
 /// Potential errors returned in the case of failure.
 public enum DecoyInterceptorError: Error {
-  case notXCUI
   case recordedStubContainsNoData
   case couldNotParseToJSON
   case invalidURLRequest
@@ -25,8 +24,12 @@ public class DecoyInterceptor: ApolloInterceptor {
     "DecoyInterceptor"
   }
 
+  public let decoy: Decoy
+
   /// Initializes a new instance of `DecoyInterceptor`.
-  public init() {}
+  public init(decoy: Decoy) {
+    self.decoy = decoy
+  }
 
   /// Intercepts a GraphQL request and either returns a stubbed response from the Decoy queue
   /// or lets the live network request proceed.
@@ -56,11 +59,6 @@ public class DecoyInterceptor: ApolloInterceptor {
     response: Apollo.HTTPResponse<Operation>?,
     completion: @escaping (Result<Apollo.GraphQLResult<Operation.Data>, any Error>) -> Void
   ) where Operation : ApolloAPI.GraphQLOperation {
-    // If we're not running in an XCUI context, do nothing and exit early.
-    guard Decoy.isXCUI() else {
-      return completion(.failure(DecoyInterceptorError.notXCUI))
-    }
-
     // Convert Apollo's HTTPRequest to a URLRequest to extract the URL.
     guard let urlRequest = try? request.toURLRequest(), let signature = try? GraphQLSignature(urlRequest: urlRequest) else {
       completion(.failure(NSError(domain: "DecoyInterceptor", code: -1, userInfo: [NSLocalizedDescriptionKey: "Bad request."])))
@@ -68,7 +66,7 @@ public class DecoyInterceptor: ApolloInterceptor {
     }
 
     // Check the Decoy queue for a stubbed response corresponding to the URL.
-    if let stubResponse = Decoy.queue.nextQueuedResponse(for: .signature(signature)) {
+    if let stubResponse = decoy.queue.nextQueuedResponse(for: .signature(signature)) {
       do {
         // Ensure the stub response contains data.
         guard let data = stubResponse.data else {
@@ -94,7 +92,7 @@ public class DecoyInterceptor: ApolloInterceptor {
     chain.proceedAsync(request: request, response: response, interceptor: self) { result in
       switch result {
       case .success(let graphQLResponse):
-        guard Decoy.mode() == .record else {
+        guard self.decoy.mode == .record else {
           return completion(.success(graphQLResponse))
         }
 
@@ -118,7 +116,7 @@ public class DecoyInterceptor: ApolloInterceptor {
           let signature = try GraphQLSignature(urlRequest: httpURLRequest)
 
           // Record the response.
-          Decoy.recorder.record(
+          self.decoy.recorder.record(
             identifier: .signature(signature),
             data: jsonData,
             response: recordedResponse,

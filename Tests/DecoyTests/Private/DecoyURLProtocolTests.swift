@@ -3,15 +3,17 @@ import XCTest
 
 class DecoyURLProtocolTests: XCTestCase {
   let decoyModeKey = Decoy.Constants.mode
+  var decoy: Decoy!
 
   override func setUp() {
     super.setUp()
 
     let mockProcessInfo = MockProcessInfo()
     mockProcessInfo.mockedEnvironment?[Decoy.Constants.mode] = "record"
+    mockProcessInfo.mockedIsRunningXCUI = true
 
-    Decoy.setUp(processInfo: mockProcessInfo)
-    Decoy.recorder = MockRecorder()
+    self.decoy = Decoy(processInfo: mockProcessInfo, recorder: MockRecorder())
+    DecoyURLProtocol.register(decoy: decoy)
 
     URLSessionConfiguration.default.protocolClasses = [MockLiveURLProtocol.self, DecoyURLProtocol.self]
     URLProtocol.registerClass(MockLiveURLProtocol.self)
@@ -19,6 +21,7 @@ class DecoyURLProtocolTests: XCTestCase {
 
   override func tearDown() {
     URLProtocol.unregisterClass(MockLiveURLProtocol.self)
+    DecoyURLProtocol.reset()
     super.tearDown()
   }
 
@@ -49,9 +52,9 @@ class DecoyURLProtocolTests: XCTestCase {
     let expectedResponse = HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil)
     let stubResponse = Stub.Response(data: expectedData, urlResponse: expectedResponse, error: nil)
 
-    Decoy.queue.queuedResponses[.url(url)] = [stubResponse]
+    decoy.queue.queuedResponses[.url(url)] = [stubResponse]
 
-    let testRecorder = Decoy.recorder as! MockRecorder
+    let testRecorder = decoy.recorder as! MockRecorder
     testRecorder.mockedShouldRecord = true
 
     let request = URLRequest(url: url)
@@ -76,10 +79,12 @@ class DecoyURLProtocolTests: XCTestCase {
     let request = URLRequest(url: url)
 
     let mockProcessInfo = MockProcessInfo()
+    mockProcessInfo.mockedIsRunningXCUI = true
     mockProcessInfo.mockedEnvironment = [Decoy.Constants.mode: "forceOffline"]
 
-    Decoy.processInfo = mockProcessInfo
-    Decoy.queue.queuedResponses[.url(url)] = nil
+    let decoy = Decoy(processInfo: mockProcessInfo)
+    decoy.queue.queuedResponses[.url(url)] = nil
+    DecoyURLProtocol.register(decoy: decoy)
 
     let client = FakeURLProtocolClient()
     let protocolInstance = DecoyURLProtocol(request: request, cachedResponse: nil, client: client)

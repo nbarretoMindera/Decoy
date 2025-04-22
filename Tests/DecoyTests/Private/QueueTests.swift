@@ -7,7 +7,7 @@ final class QueueTests: XCTestCase {
 
   override func setUp() {
     super.setUp()
-    queue = Queue()
+    queue = Queue(isXCUI: true, logger: Logger())
   }
 
   override func tearDown() {

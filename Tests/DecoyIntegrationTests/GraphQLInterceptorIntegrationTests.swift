@@ -5,6 +5,7 @@ import XCTest
 class GraphQLInterceptorIntegrationTests: XCTestCase {
   var fileURL: URL!
   var processInfo: MockProcessInfo!
+  var decoy: Decoy!
 
   override func setUpWithError() throws {
     try super.setUpWithError()
@@ -20,8 +21,7 @@ class GraphQLInterceptorIntegrationTests: XCTestCase {
       Decoy.Constants.mockFilename: fileURL.lastPathComponent
     ]
 
-    Decoy.queue.clear()
-    Decoy.setUp(processInfo: processInfo)
+    decoy = Decoy(processInfo: processInfo)
   }
 
   override func tearDown() {
@@ -54,11 +54,11 @@ class GraphQLInterceptorIntegrationTests: XCTestCase {
     }
 
     wait(for: [recordExpectation], timeout: 3)
-    RecorderWaiter.waitForFlush()
+    RecorderWaiter.waitForFlush(recorder: decoy.recorder)
 
     // Switch to forceOffline mode and run again
     processInfo.mockedEnvironment?[Decoy.Constants.mode] = "forceOffline"
-    Decoy.setUp(processInfo: processInfo)
+    let decoy = Decoy(processInfo: processInfo)
 
     let replayExpectation = expectation(description: "Replay completes")
 
@@ -85,9 +85,7 @@ class GraphQLInterceptorIntegrationTests: XCTestCase {
       Decoy.Constants.mockFilename: fileURL.lastPathComponent
     ]
 
-    Decoy.queue.clear()
-    Decoy.setUp(processInfo: processInfo)
-
+    let decoy = Decoy(processInfo: processInfo)
     let store = ApolloStore()
     let client = URLSessionClient()
     let provider = TestInterceptorProvider(store: store, client: client)
@@ -118,11 +116,11 @@ class GraphQLInterceptorIntegrationTests: XCTestCase {
     }
 
     wait(for: [recordExp1, recordExp2], timeout: 5)
-    RecorderWaiter.waitForFlush()
+    RecorderWaiter.waitForFlush(recorder: decoy.recorder)
 
     // Switch to forceOffline
     processInfo.mockedEnvironment?[Decoy.Constants.mode] = "forceOffline"
-    Decoy.setUp(processInfo: processInfo)
+    decoy.processInfo = processInfo
 
     let replayExp1 = expectation(description: "Replay query1")
     let replayExp2 = expectation(description: "Replay query2")

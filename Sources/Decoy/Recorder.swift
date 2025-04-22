@@ -42,6 +42,8 @@ public class Recorder: RecorderInterface {
   /// Although each Recorder instance has its own queue, the file writing is coordinated via the writer.
   private let localQueue = DispatchQueue(label: "com.decoy.recorder")
 
+  private let logger: LoggerInterface
+
   /// Initializes a new instance of `Recorder`.
   ///
   /// - Parameters:
@@ -49,9 +51,10 @@ public class Recorder: RecorderInterface {
   ///     Defaults to `ProcessInfo.processInfo`.
   ///   - writer: An instance conforming to `WriterInterface` responsible for file operations.
   ///     Defaults to an instance of `Writer()`.
-  init(processInfo: ProcessInfo = Decoy.processInfo, writer: WriterInterface = Writer()) {
+  init(processInfo: ProcessInfo, writer: WriterInterface, logger: LoggerInterface) {
     self.processInfo = processInfo
     self.writer = writer
+    self.logger = logger
   }
 
   /// Indicates whether API calls should be recorded.
@@ -75,7 +78,9 @@ public class Recorder: RecorderInterface {
   ///   - error: An error encountered during the network call.
   ///            (Currently, error information is not recorded; you can extend this as needed.)
   public func record(identifier: Stub.Identifier, data: Data?, response: HTTPURLResponse?, error: Error?) {
-    localQueue.async {
+    localQueue.async { [weak self] in
+      guard let self else { return }
+
       let stub = Stub(
         identifier: identifier,
         response: Stub.Response(
@@ -88,7 +93,7 @@ public class Recorder: RecorderInterface {
       do { try self.writer.append(recording: stub.asJSON) }
       catch { print(error) }
 
-      Decoy.logInfo("Recorded decoy for: \(identifier.stringValue)")
+      self.logger.info("Recorded decoy for: \(identifier.stringValue)")
     }
   }
 

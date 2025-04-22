@@ -3,9 +3,9 @@ import Foundation
 import XCTest
 
 enum RecorderWaiter {
-  static func waitForFlush(timeout: TimeInterval = 2) {
+  static func waitForFlush(recorder: RecorderInterface, timeout: TimeInterval = 2) {
     let expectation = XCTestExpectation(description: "Recorder flushed")
-    Decoy.recorder.flush {
+    recorder.flush {
       expectation.fulfill()
     }
     XCTWaiter().wait(for: [expectation], timeout: timeout)

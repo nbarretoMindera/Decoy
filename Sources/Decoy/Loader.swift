@@ -38,6 +38,12 @@ struct Loader: LoaderInterface {
     static let headerFields = "headerFields"
   }
 
+  let isXCUI: Bool
+
+  init(isXCUI: Bool) {
+    self.isXCUI = isXCUI
+  }
+
   /// Loads and decodes mocked responses from a JSON file at the specified URL.
   ///
   /// - Parameter url: The file URL pointing to the JSON mock file.
@@ -50,7 +56,7 @@ struct Loader: LoaderInterface {
   ///
   /// If the JSON file cannot be read or the decoding process fails, this method returns `nil`.
   func loadJSON(from url: URL) -> [Stub]? {
-    guard Decoy.isXCUI() else { return nil }
+    guard isXCUI else { return nil }
 
     guard let data = try? Data(contentsOf: url) else { return nil }
     guard let json = try? JSONSerialization.jsonObject(with: data) as? StubArray else { return nil }

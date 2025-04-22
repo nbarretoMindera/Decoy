@@ -37,6 +37,15 @@ public class Queue: QueueInterface {
   /// is returned first when requested.
   public var queuedResponses = [Stub.Identifier: [Stub.Response]]()
 
+  private let isXCUI: Bool
+
+  private let logger: LoggerInterface
+
+  init(isXCUI: Bool, logger: LoggerInterface) {
+    self.isXCUI = isXCUI
+    self.logger = logger
+  }
+
   /// Enqueues a mocked response for a specific URL.
   ///
   /// - Parameter Stub: A `Stub` instance that contains the URL and the associated response.
@@ -58,22 +67,22 @@ public class Queue: QueueInterface {
   /// This method removes and returns the last element of the array for the specified URL,
   /// which corresponds to the most recently added response.
   public func nextQueuedResponse(for identifier: Stub.Identifier) -> Stub.Response? {
-    guard Decoy.isXCUI() else { return nil }
+    guard isXCUI else { return nil }
 
     if case .url(let url) = identifier {
       if let stub = queuedResponses[.url(url)]?.popLast() {
-        Decoy.logInfo("Providing decoy for \(url)")
+        logger.info("Providing decoy for \(url)")
         return stub
       } else {
-        Decoy.logWarning("No decoy was queued for \(url)")
+        logger.warning("No decoy was queued for \(url)")
         return nil
       }
     } else if case .signature(let graphQLSignature) = identifier {
       if let stub = queuedResponses[.signature(graphQLSignature)]?.popLast() {
-        Decoy.logInfo("Providing decoy for \(graphQLSignature)")
+        logger.info("Providing decoy for \(graphQLSignature)")
         return stub
       } else {
-        Decoy.logWarning("No decoy was queued for \(graphQLSignature)")
+        logger.warning("No decoy was queued for \(graphQLSignature)")
         return nil
       }
     } else {

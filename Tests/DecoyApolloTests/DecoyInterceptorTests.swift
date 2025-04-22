@@ -7,19 +7,26 @@ import XCTest
 
 final class DecoyInterceptorTests: XCTestCase {
   private var sut: DecoyInterceptor!
+  private var decoy: Decoy!
 
   override func setUp() {
     super.setUp()
-    sut = DecoyInterceptor()
+
+    let processInfo = MockProcessInfo()
+    processInfo.mockedIsRunningXCUI = true
+
+    decoy = Decoy(processInfo: processInfo)
+    sut = DecoyInterceptor(decoy: decoy)
   }
 
   override func tearDown() {
     sut = nil
+    decoy = nil
     super.tearDown()
   }
 
   func test_id() {
-    XCTAssertEqual(DecoyInterceptor().id, "DecoyInterceptor")
+    XCTAssertEqual(sut.id, "DecoyInterceptor")
   }
 
   func test_interceptAsync_shouldFail_whenRequestCannotBeConvertedToURLRequest() {

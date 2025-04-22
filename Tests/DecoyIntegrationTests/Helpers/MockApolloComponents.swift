@@ -1,6 +1,7 @@
 import Apollo
 import ApolloAPI
 import DecoyApollo
+import Decoy
 import Foundation
 
 final class MockGraphQLOperation: GraphQLQuery {
@@ -89,7 +90,7 @@ final class TestInterceptorProvider: InterceptorProvider {
     for operation: Operation
   ) -> [ApolloInterceptor] {
     return [
-      DecoyInterceptor(),
+      DecoyInterceptor(decoy: Decoy()),
       MockNetworkFetchInterceptor(),
       MaxRetryInterceptor(),
       CacheReadInterceptor(store: store),

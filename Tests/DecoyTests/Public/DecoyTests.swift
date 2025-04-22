@@ -5,7 +5,6 @@ import Foundation
 final class DecoyTests: XCTestCase {
   override func setUp() {
     super.setUp()
-    Decoy.queue.queuedResponses.removeAll()
   }
 
   func test_urlSession_shouldReturnAURLSession() {
@@ -24,8 +23,8 @@ final class DecoyTests: XCTestCase {
     let processInfo = MockProcessInfo()
     processInfo.mockedEnvironment = [Decoy.Constants.mode: "invalid"]
 
-    let mode = Decoy.mode(for: processInfo)
-    XCTAssertEqual(mode, .liveIfUnmocked, "An   mode should default to .liveIfUnmocked")
+    let decoy = Decoy(processInfo: processInfo)
+    XCTAssertEqual(decoy.mode, .liveIfUnmocked, "An   mode should default to .liveIfUnmocked")
   }
 
   func test_setUp_shouldNotQueue_whenLoaderFails() {
@@ -36,43 +35,49 @@ final class DecoyTests: XCTestCase {
       Decoy.Constants.mockFilename: "nonexistent.json"
     ]
 
-    let originalLoader = Decoy.loader
-    Decoy.loader = FailingLoader()
+    let decoy = Decoy(processInfo: processInfo)
 
-    Decoy.setUp(processInfo: processInfo)
-    XCTAssert(Decoy.queue.queuedResponses.isEmpty, "Queue should remain empty when Loader fails to load JSON")
+    let originalLoader = decoy.loader
+    decoy.loader = FailingLoader()
 
-    Decoy.loader = originalLoader
+    decoy.setUp()
+    XCTAssert(decoy.queue.queuedResponses.isEmpty, "Queue should remain empty when Loader fails to load JSON")
+
+    decoy.loader = originalLoader
   }
 
   func test_isXCUI_shouldReturnTrue_whenEnvironmentIsSet() {
     let mockedProcessInfo = MockProcessInfo()
     mockedProcessInfo.mockedIsRunningXCUI = true
-    XCTAssert(Decoy.isXCUI(processInfo: mockedProcessInfo))
+    let decoy = Decoy(processInfo: mockedProcessInfo)
+    XCTAssert(decoy.isXCUI)
   }
 
   func test_isXCUI_shouldReturnFalse_whenEnvironmentIsNotSet() {
     let mockedProcessInfo = MockProcessInfo()
     mockedProcessInfo.mockedIsRunningXCUI = false
-    XCTAssertFalse(Decoy.isXCUI(processInfo: mockedProcessInfo))
+    let decoy = Decoy(processInfo: mockedProcessInfo)
+    XCTAssertFalse(decoy.isXCUI)
   }
 
   func test_mode_defaults_to_liveIfUnmocked_whenNotSet() {
     let processInfo = MockProcessInfo()
-    XCTAssertEqual(Decoy.mode(for: processInfo), .liveIfUnmocked)
+    let decoy = Decoy(processInfo: processInfo)
+    XCTAssertEqual(decoy.mode, .liveIfUnmocked)
   }
 
   func test_mode_returns_record_whenSet() {
     let processInfo = MockProcessInfo()
     processInfo.mockedEnvironment = [Decoy.Constants.mode: "record"]
-    XCTAssertEqual(Decoy.mode(for: processInfo), .record)
+    let decoy = Decoy(processInfo: processInfo)
+    XCTAssertEqual(decoy.mode, .record)
   }
 
   func test_setUp_shouldNotLoadJSON_whenXCUIIsNotRunning() {
     let processInfo = MockProcessInfo()
     processInfo.mockedIsRunningXCUI = false
-    Decoy.setUp(processInfo: processInfo)
-    XCTAssert(Decoy.queue.queuedResponses.isEmpty)
+    let decoy = Decoy(processInfo: processInfo)
+    XCTAssert(decoy.queue.queuedResponses.isEmpty)
   }
 
   func test_setUp_shouldNotLoadJSON_whenMockDirectoryIsNotSet() {
@@ -81,8 +86,8 @@ final class DecoyTests: XCTestCase {
       Decoy.Constants.isXCUI: "true",
       Decoy.Constants.mockFilename: "B"
     ]
-    Decoy.setUp(processInfo: processInfo)
-    XCTAssert(Decoy.queue.queuedResponses.isEmpty)
+    let decoy = Decoy(processInfo: processInfo)
+    XCTAssert(decoy.queue.queuedResponses.isEmpty)
   }
 
   func test_setUp_shouldNotQueue_whenMockFilenameIsNotSet() {
@@ -91,8 +96,8 @@ final class DecoyTests: XCTestCase {
       Decoy.Constants.isXCUI: "true",
       Decoy.Constants.mockDirectory: "B"
     ]
-    Decoy.setUp(processInfo: processInfo)
-    XCTAssert(Decoy.queue.queuedResponses.isEmpty)
+    let decoy = Decoy(processInfo: processInfo)
+    XCTAssert(decoy.queue.queuedResponses.isEmpty)
   }
 
   func test_setUp_shouldLoadJSON_whenURLContainsValidJSON() {
@@ -106,7 +111,7 @@ final class DecoyTests: XCTestCase {
       Decoy.Constants.mockFilename: "LoaderTest.json"
     ]
 
-    Decoy.setUp(processInfo: processInfo)
-    XCTAssertFalse(Decoy.queue.queuedResponses.isEmpty)
+    let decoy = Decoy(processInfo: processInfo)
+    XCTAssertFalse(decoy.queue.queuedResponses.isEmpty)
   }
 }

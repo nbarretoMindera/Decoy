@@ -33,6 +33,8 @@ class Writer: WriterInterface {
   /// The `FileManager` instance used for performing file system operations.
   private let fileManager: FileManager
 
+  private let logger: LoggerInterface
+
   /// A shared global serial dispatch queue used to synchronize file write operations across all `Writer` instances.
   private static let globalQueue = DispatchQueue(label: "com.decoy.globalWriterQueue")
 
@@ -43,9 +45,10 @@ class Writer: WriterInterface {
   ///                  Defaults to `ProcessInfo.processInfo`.
   ///   - fileManager: The `FileManager` instance used for performing file operations.
   ///                  Defaults to `FileManager.default`.
-  init(processInfo: ProcessInfo = Decoy.processInfo, fileManager: FileManager = .default) {
+  init(processInfo: ProcessInfo, fileManager: FileManager = .default, logger: LoggerInterface) {
     self.processInfo = processInfo
     self.fileManager = fileManager
+    self.logger = logger
   }
 
   /// Appends a single recording to the JSON file.
@@ -92,7 +95,7 @@ class Writer: WriterInterface {
       // Write the JSON data to disk, overwriting the file.
       try jsonData.write(to: url)
       if let recordingIdentifier = recording["identifier"] as? String {
-        Decoy.logInfo("Wrote recording for \(recordingIdentifier)")
+        logger.info("Wrote recording for \(recordingIdentifier)")
       }
     }
   }
