@@ -3,21 +3,29 @@ import ApolloAPI
 import Decoy
 import Foundation
 
-/// Potential errors returned in the case of failure.
+/// Errors that can occur during the interception and handling of GraphQL requests by `DecoyInterceptor`.
 public enum DecoyInterceptorError: Error {
+  /// Indicates that no stub was found in the Decoy queue while operating in `forceOffline` mode.
   case stubNotFoundInForceOfflineMode
+  /// Indicates that a recorded stub response was found but contains no data.
   case recordedStubContainsNoData
+  /// Indicates failure to parse stub or live response data into JSON.
   case couldNotParseToJSON
+  /// Indicates an invalid URLRequest was encountered during processing.
   case invalidURLRequest
 }
 
-/// An Apollo interceptor that integrates the Decoy mocking framework into GraphQL requests.
+/// An Apollo interceptor that integrates the Decoy mocking framework into the request chain.
 ///
-/// The DecoyInterceptor is responsible for intercepting GraphQL requests processed by Apollo. It
-/// first checks the Decoy queue for a pre-loaded stub response based on the request's URL. If a stub
-/// is available, it converts the stub data into a GraphQLResponse, parses the result, and returns it.
-/// If no stub is available, it allows the live network request to proceed. When the live response is
-/// received, if Decoy is in record mode, the interceptor records the response via the Decoy recorder.
+/// `DecoyInterceptor` is designed to be used within Apollo's interceptor chain to intercept GraphQL
+/// requests. It attempts to fulfill requests from Decoy's stub queue to enable offline or mocked responses.
+/// If a stub is available for the request, it returns the stubbed response immediately without performing a network call.
+/// If no stub is available and Decoy is in `forceOffline` mode, it fails the request.
+/// Otherwise, it allows the request to proceed to the network and, if Decoy is in `record` mode,
+/// records the live response for future stubbing.
+///
+/// This interceptor enables seamless switching between live network requests and stubbed responses,
+/// facilitating testing, offline support, and response recording for GraphQL operations.
 public class DecoyInterceptor: ApolloInterceptor {
 
   /// A unique identifier for this interceptor.
@@ -25,72 +33,72 @@ public class DecoyInterceptor: ApolloInterceptor {
     "DecoyInterceptor"
   }
 
+  /// The Decoy instance used to manage stubbing and recording.
   public let decoy: Decoy
 
-  /// Initializes a new instance of `DecoyInterceptor`.
+  /// Creates a new `DecoyInterceptor` with the specified Decoy instance.
+  ///
+  /// - Parameter decoy: The Decoy instance that manages stub queues and recording.
   public init(decoy: Decoy) {
     self.decoy = decoy
   }
 
-  /// Intercepts a GraphQL request and either returns a stubbed response from the Decoy queue
-  /// or lets the live network request proceed.
+  /// Intercepts a GraphQL request to provide a stubbed response from Decoy's queue or proceed with a live network request.
   ///
-  /// The interceptor performs the following steps:
-  ///
-  /// 1. Converts the Apollo HTTPRequest to a URLRequest in order to extract the URL.
-  /// 2. Checks the Decoy queue for a stub response corresponding to that URL.
-  /// 3. If a stub is found:
-  ///    - Deserializes the stub data into a JSON object.
-  ///    - Constructs a GraphQLResponse using the operation and JSON body.
-  ///    - Parses the result and completes with the stubbed response.
-  /// 4. If no stub is available:
-  ///    - Proceeds with the live network request by calling `chain.proceedAsync`.
-  ///    - On success, if Decoy is in record mode, it converts the live response to JSON data
-  ///      and records it using the Decoy recorder.
-  ///    - Completes with the live response.
+  /// The interception logic follows these steps:
+  /// 1. Attempts to convert the Apollo `HTTPRequest` to a `URLRequest` and generate a `GraphQLSignature` from it.
+  ///    If this fails, the request is completed with an error.
+  /// 2. Queries Decoy's stub queue for a stub response matching the generated signature.
+  ///    - If a stub is found:
+  ///      - Validates that the stub contains data.
+  ///      - Parses the stub data into a JSON object.
+  ///      - Constructs a `GraphQLResponse` from the operation and parsed JSON.
+  ///      - Parses the response into a `GraphQLResult` and completes with this stubbed result.
+  ///    - If no stub is found and Decoy is in `forceOffline` mode, completes with a `stubNotFoundInForceOfflineMode` error.
+  /// 3. If no stub is found and not in `forceOffline` mode, allows the request to proceed to the network.
+  ///    - Upon receiving a live response:
+  ///      - If Decoy is in `record` mode:
+  ///        - Converts the live response to JSON data.
+  ///        - Attempts to obtain an `HTTPURLResponse` from the response or creates a default one.
+  ///        - Generates a signature for the request and records the response data and metadata via Decoy's recorder.
+  ///      - Completes with the live response.
+  ///    - If the network request fails, completes with the encountered error.
   ///
   /// - Parameters:
-  ///   - chain: The request chain managing the flow of interceptors.
-  ///   - request: The Apollo HTTPRequest representing the GraphQL operation.
-  ///   - response: An optional HTTP response provided by earlier interceptors.
-  ///   - completion: A closure called with the final result of the request, either a GraphQLResult or an error.
+  ///   - chain: The interceptor chain managing the flow of request processing.
+  ///   - request: The Apollo HTTP request representing the GraphQL operation.
+  ///   - response: An optional HTTP response from earlier interceptors.
+  ///   - completion: A closure invoked with the final result of the request, either a `GraphQLResult` or an error.
   public func interceptAsync<Operation>(
     chain: any Apollo.RequestChain,
     request: Apollo.HTTPRequest<Operation>,
     response: Apollo.HTTPResponse<Operation>?,
     completion: @escaping (Result<Apollo.GraphQLResult<Operation.Data>, any Error>) -> Void
   ) where Operation : ApolloAPI.GraphQLOperation {
-    // Convert Apollo's HTTPRequest to a URLRequest to extract the URL.
     guard let urlRequest = try? request.toURLRequest(), let signature = try? GraphQLSignature(urlRequest: urlRequest) else {
       completion(.failure(NSError(domain: "DecoyInterceptor", code: -1, userInfo: [NSLocalizedDescriptionKey: "Bad request."])))
       return
     }
 
-    // Check the Decoy queue for a stubbed response corresponding to the URL.
     if let stubResponse = decoy.queue.nextQueuedResponse(for: .signature(signature)) {
       do {
-        // Ensure the stub response contains data.
         guard let data = stubResponse.data else {
           return completion(.failure(DecoyInterceptorError.recordedStubContainsNoData))
         }
-        // Deserialize the stub data into a JSON object.
+
         guard let json = try? JSONSerialization.jsonObject(with: data) as? JSONObject else {
           return completion(.failure(DecoyInterceptorError.couldNotParseToJSON))
         }
-        // Construct a GraphQLResponse using the operation and JSON body.
+
         let graphQLResponse = GraphQLResponse(operation: request.operation, body: json)
-        // Parse the GraphQLResponse to get the result.
         let (result, _) = try graphQLResponse.parseResult()
-        // Complete with the stubbed result.
         return completion(.success(result))
       } catch {
-        // If an error occurs during stub conversion, complete with the error.
         return completion(.failure(error))
       }
     }
 
-    // If no queue was available but we're forcing offline, return with an error.
-    if decoy.mode == .forceOffline {
+    guard decoy.mode != .forceOffline else {
       return chain.handleErrorAsync(
         DecoyInterceptorError.stubNotFoundInForceOfflineMode,
         request: request,
@@ -99,7 +107,6 @@ public class DecoyInterceptor: ApolloInterceptor {
       )
     }
 
-    // If no stub is available, proceed with the live network request.
     chain.proceedAsync(request: request, response: response, interceptor: self) { result in
       switch result {
       case .success(let graphQLResponse):
@@ -107,26 +114,21 @@ public class DecoyInterceptor: ApolloInterceptor {
           return completion(.success(graphQLResponse))
         }
 
-        // Convert the live response into JSON data.
         guard let jsonData = try? JSONSerialization.data(withJSONObject: graphQLResponse.asJSONDictionary()) else {
           return completion(.failure(DecoyInterceptorError.couldNotParseToJSON))
         }
 
-        // Attempt to parse an HTTPURLResponse from the GraphQLResponse.
         let recordedResponse: HTTPURLResponse
         if let liveResponse = response?.httpResponse as? HTTPURLResponse {
           recordedResponse = liveResponse
         } else {
-          // TODO: Should we throw an error here / complete with failure instead?
           recordedResponse = HTTPURLResponse(url: signature.endpoint, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: nil)!
         }
 
-        // Generate a signature for the response so that we can access it later.
         do {
           let httpURLRequest = try request.toURLRequest()
           let signature = try GraphQLSignature(urlRequest: httpURLRequest)
 
-          // Record the response.
           self.decoy.recorder.record(
             identifier: .signature(signature),
             data: jsonData,
@@ -134,13 +136,11 @@ public class DecoyInterceptor: ApolloInterceptor {
             error: nil
           )
 
-          // Complete with the live response.
           completion(.success(graphQLResponse))
         } catch {
           return completion(.failure(DecoyInterceptorError.invalidURLRequest))
         }
       case .failure(let error):
-        // Complete with any errors encountered.
         completion(.failure(error))
       }
     }

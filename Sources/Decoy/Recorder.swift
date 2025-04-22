@@ -18,7 +18,16 @@ public protocol RecorderInterface {
   ///   - error: An optional `Error` encountered during the network call.
   func record(identifier: Stub.Identifier, data: Data?, response: HTTPURLResponse?, error: Error?)
 
-  /// Used only in tests to flush the writer queue for assertions.
+  /**
+   Flushes all queued write operations and executes a completion handler when finished.
+
+   This method is intended for use in tests only, to ensure that all pending write operations
+   have completed before making assertions. It executes the provided completion handler
+   after both the internal serial queue and the underlying writer have finished processing
+   their operations.
+
+   - Parameter completion: A closure that is called after all queued operations have finished.
+   */
   func flush(completion: @escaping () -> Void)
 }
 
@@ -97,6 +106,16 @@ public class Recorder: RecorderInterface {
     }
   }
 
+  /**
+   Flushes all queued write operations and executes a completion handler when finished.
+
+   This method is intended for use in tests only, to ensure that all pending write operations
+   have completed before making assertions. It executes the provided completion handler
+   after both the Recorder's internal serial queue and the underlying writer have finished
+   processing their operations.
+
+   - Parameter completion: A closure that is called after all queued operations have finished.
+   */
   public func flush(completion: @escaping () -> Void) {
     localQueue.async {
       self.writer.flush {

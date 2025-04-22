@@ -1,14 +1,29 @@
 import Foundation
 
+/// An enumeration that represents a JSON value, supporting all JSON data types.
+/// This enum can be used to decode, encode, and manipulate JSON data in a type-safe manner.
 public enum JSONValue: Codable, Hashable, CustomStringConvertible {
+  /// A JSON string value.
   case string(String)
+  /// A JSON number value, represented as a Double.
   case number(Double)
+  /// A JSON boolean value.
   case bool(Bool)
+  /// A JSON array, represented as an array of `JSONValue` elements.
   case array([JSONValue])
+  /// A JSON object, represented as a dictionary with String keys and `JSONValue` values.
   case object([String: JSONValue])
+  /// A JSON null value.
   case null
 
-  // Decode using standard Codable.
+  /// Creates a new instance by decoding from the given decoder.
+  ///
+  /// This initializer attempts to decode the JSON value in the order of:
+  /// null, Bool, Double, String, Array, and Object.
+  /// If none of these types match, it throws a decoding error.
+  ///
+  /// - Parameter decoder: The decoder to read data from.
+  /// - Throws: `DecodingError` if the data does not match any JSON type.
   public init(from decoder: Decoder) throws {
     let container = try decoder.singleValueContainer()
     if container.decodeNil() {
@@ -28,7 +43,12 @@ public enum JSONValue: Codable, Hashable, CustomStringConvertible {
     }
   }
 
-  // A human-friendly description of the JSON value, used when generating a GraphQLSignature.
+  /// A human-friendly string representation of the JSON value.
+  ///
+  /// This property produces a concise textual description of the JSON value,
+  /// useful for debugging or generating signatures. For numbers, it omits the decimal
+  /// when the value is an integer. Arrays and objects are represented with their
+  /// respective delimiters and elements.
   public var description: String {
     switch self {
     case .string(let value):
@@ -54,7 +74,12 @@ public enum JSONValue: Codable, Hashable, CustomStringConvertible {
     }
   }
 
-  // Encode using standard Codable.
+  /// Encodes this value into the given encoder.
+  ///
+  /// The encoding matches the JSON type represented by this value.
+  ///
+  /// - Parameter encoder: The encoder to write data to.
+  /// - Throws: An error if any value throws an error during encoding.
   public func encode(to encoder: Encoder) throws {
     var container = encoder.singleValueContainer()
     switch self {
@@ -67,7 +92,21 @@ public enum JSONValue: Codable, Hashable, CustomStringConvertible {
     }
   }
 
-  // Helper to create a JSONValue from an arbitrary value.
+  /// Creates a `JSONValue` from an arbitrary Foundation object.
+  ///
+  /// This initializer attempts to map any given object to an appropriate JSONValue case.
+  /// It supports Swift native types and Foundation types commonly used to represent JSON data:
+  /// - `String` -> `.string`
+  /// - `Bool` -> `.bool`
+  /// - `Int` and `Double` -> `.number`
+  /// - `[String: Any]` -> `.object` (recursive mapping of values)
+  /// - `[Any]` -> `.array` (recursive mapping of elements)
+  /// - `NSNull` -> `.null`
+  /// - `NSNumber` -> `.bool` if it represents a boolean, otherwise `.number`
+  ///
+  /// If the input cannot be mapped, the initializer returns `nil`.
+  ///
+  /// - Parameter json: The object to map to a `JSONValue`.
   public init?(json: Any) {
     switch json {
     case let value as String:
@@ -90,7 +129,7 @@ public enum JSONValue: Codable, Hashable, CustomStringConvertible {
     case _ as NSNull:
       self = .null
     case let value as NSNumber:
-      // NSNumber might be a Bool masquerading as a number.
+      /// NSNumber might be a Bool masquerading as a number, this helps us be sure.
       let boolType = CFGetTypeID(value) == CFBooleanGetTypeID()
       if boolType {
         self = .bool(value.boolValue)

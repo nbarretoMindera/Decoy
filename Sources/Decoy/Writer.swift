@@ -10,6 +10,14 @@ protocol WriterInterface {
   /// - Throws: An error if appending the recording fails (for example, due to a missing file path or serialization issues).
   func append(recording: [String: Any]) throws
 
+  /// Ensures all enqueued write operations have completed before executing the completion closure.
+  ///
+  /// This method is intended for use in testing scenarios where it is important to guarantee that all
+  /// pending write operations on the global writer queue have finished before performing assertions or
+  /// continuing with test execution. The provided `completion` closure is scheduled to run asynchronously
+  /// after the current queue has drained, ensuring synchronization.
+  ///
+  /// - Parameter completion: A closure that will be called after all enqueued write operations have completed.
   func flush(completion: @escaping () -> Void)
 }
 
@@ -100,6 +108,13 @@ class Writer: WriterInterface {
     }
   }
 
+  /// Ensures all enqueued write operations have completed before executing the completion closure.
+  ///
+  /// This method is intended for use in testing scenarios to guarantee that all pending write operations
+  /// on the global writer queue have finished before continuing. The provided `completion` closure is scheduled
+  /// to run asynchronously after the current queue has drained, ensuring synchronization for test assertions.
+  ///
+  /// - Parameter completion: A closure that will be called after all enqueued write operations have completed.
   public func flush(completion: @escaping () -> Void) {
     Writer.globalQueue.async {
       completion()

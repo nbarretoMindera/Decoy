@@ -23,6 +23,11 @@ public protocol QueueInterface {
   /// - Returns: An optional `Stub.Response` if one exists in the queue; otherwise, `nil`.
   func nextQueuedResponse(for identifier: Stub.Identifier) -> Stub.Response?
 
+  /// Removes all queued mocked responses and resets the internal store.
+  ///
+  /// Use this method to remove all stubbed responses that have been enqueued, returning the queue to an empty state.
+  ///
+  /// Conforming implementations should use this to ensure a clean test state between test runs or scenarios, preventing cross-test contamination and ensuring deterministic behavior.
   func clear()
 }
 
@@ -90,6 +95,13 @@ public class Queue: QueueInterface {
     }
   }
 
+  /**
+   Removes all queued stub responses, effectively resetting the internal response store.
+   
+   This method clears all stored mocked responses for every URL or signature, returning the queue to an empty state.
+   
+   Typically, you use this method during test teardown or when you need to reset the `Decoy` queue between test scenarios to ensure isolation and prevent cross-test contamination.
+   */
   public func clear() {
     queuedResponses.removeAll()
   }
