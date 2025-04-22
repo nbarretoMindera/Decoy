@@ -1,7 +1,7 @@
 @testable import Decoy
 import XCTest
 
-extension XCTestCase {
+public extension XCTestCase {
   var testSignature: GraphQLSignature! {
     var request = URLRequest(url: URL(string: "graph://ql")!)
     request.httpBody = "{\"query\": \"query {foo}\", \"operationName\": \"bar\", \"endpoint\": \"graph://ql\"}".data(using: .utf8)!

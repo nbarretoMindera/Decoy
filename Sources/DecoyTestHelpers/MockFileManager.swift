@@ -1,9 +1,9 @@
 import Foundation
 
-class MockFileManager: FileManager {
-  var didCallCreateDirectory = false
+public class MockFileManager: FileManager {
+  public var didCallCreateDirectory = false
 
-  override func createDirectory(
+  public override func createDirectory(
     at url: URL,
     withIntermediateDirectories createIntermediates: Bool,
     attributes: [FileAttributeKey: Any]? = nil
