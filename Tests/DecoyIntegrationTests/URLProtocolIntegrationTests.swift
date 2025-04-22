@@ -1,5 +1,6 @@
 import XCTest
 @testable import Decoy
+import DecoyTestHelpers
 
 class URLProtocolIntegrationTests: XCTestCase {
   var filename: String!
@@ -59,7 +60,7 @@ class URLProtocolIntegrationTests: XCTestCase {
     session.dataTask(with: request) { _, _, _ in }.resume()
 
     // Since mocks are written on a queue, we need a slight delay in the test to simulate real behaviour.
-    RecorderWaiter.waitForFlush(recorder: decoy.recorder)
+    RecorderWaiter.wait(for: decoy.recorder)
 
     // Arbitrary 5 second wait.
     let expectation = expectation(description: "Wait for 5 seconds")
@@ -116,7 +117,7 @@ class URLProtocolIntegrationTests: XCTestCase {
     wait(for: [expectation], timeout: 2.0)
 
     // Wait for writes to complete
-    RecorderWaiter.waitForFlush(recorder: decoy.recorder)
+    RecorderWaiter.wait(for: decoy.recorder)
 
     // Load and verify both stubs were recorded
     guard let stubs = Loader(isXCUI: true).loadJSON(from: fileURL) else {
@@ -167,7 +168,7 @@ class URLProtocolIntegrationTests: XCTestCase {
     }.resume()
 
     wait(for: [expectation], timeout: 2)
-    RecorderWaiter.waitForFlush(recorder: decoy.recorder)
+    RecorderWaiter.wait(for: decoy.recorder)
 
     // Load stub from disk
     guard let stubs = Loader(isXCUI: true).loadJSON(from: fileURL),

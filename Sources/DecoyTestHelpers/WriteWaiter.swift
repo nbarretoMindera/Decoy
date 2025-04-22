@@ -2,8 +2,8 @@
 import Foundation
 import XCTest
 
-enum RecorderWaiter {
-  static func waitForFlush(recorder: RecorderInterface, timeout: TimeInterval = 2) {
+public enum RecorderWaiter {
+  public static func wait(for recorder: RecorderInterface, timeout: TimeInterval = 2) {
     let expectation = XCTestExpectation(description: "Recorder flushed")
     recorder.flush {
       expectation.fulfill()

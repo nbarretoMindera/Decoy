@@ -1,6 +1,7 @@
 @testable import Decoy
-import XCTest
+import DecoyTestHelpers
 import Foundation
+import XCTest
 
 final class DecoyTests: XCTestCase {
   override func setUp() {

@@ -1,6 +1,7 @@
 import Foundation
 import XCTest
 @testable import Decoy
+import DecoyTestHelpers
 
 final class WriterTests: XCTestCase {
   func test_append_shouldThrowFilePathNotFound_whenPathIsMissing() {

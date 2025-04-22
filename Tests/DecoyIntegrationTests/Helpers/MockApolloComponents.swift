@@ -77,7 +77,7 @@ final class MockNetworkFetchInterceptor: ApolloInterceptor {
   }
 }
 
-final class TestInterceptorProvider: InterceptorProvider {
+public class TestInterceptorProvider: InterceptorProvider {
   let store: ApolloStore
   let client: URLSessionClient
   let decoy: Decoy
@@ -88,7 +88,7 @@ final class TestInterceptorProvider: InterceptorProvider {
     self.decoy = decoy
   }
 
-  func interceptors<Operation: GraphQLOperation>(
+  public func interceptors<Operation: GraphQLOperation>(
     for operation: Operation
   ) -> [ApolloInterceptor] {
     return [

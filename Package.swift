@@ -36,9 +36,16 @@ let package = Package(
       name: "DecoyXCUI",
       dependencies: ["Decoy"]
     ),
+    .target(
+      name: "DecoyTestHelpers",
+      dependencies: ["Decoy"]
+    ),
     .testTarget(
       name: "DecoyTests",
-      dependencies: ["Decoy"],
+      dependencies: [
+        "Decoy",
+        "DecoyTestHelpers"
+      ],
       resources: [
         .process("Resources")
       ]
@@ -47,12 +54,16 @@ let package = Package(
       name: "DecoyIntegrationTests",
       dependencies: [
         "Decoy",
-        "DecoyApollo"
+        "DecoyApollo",
+        "DecoyTestHelpers"
       ]
     ),
     .testTarget(
       name: "DecoyApolloTests",
-      dependencies: ["DecoyApollo"]
+      dependencies: [
+        "DecoyApollo",
+        "DecoyTestHelpers"
+      ]
     ),
   ]
 )

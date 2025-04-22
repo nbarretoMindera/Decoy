@@ -1,4 +1,5 @@
 @testable import Decoy
+import DecoyTestHelpers
 import XCTest
 
 class DecoyURLProtocolTests: XCTestCase {

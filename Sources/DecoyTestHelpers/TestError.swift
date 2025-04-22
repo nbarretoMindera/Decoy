@@ -1,5 +1,5 @@
 import Foundation
 
-enum TestError: Error {
+public enum TestError: Error {
   case generic
 }

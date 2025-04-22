@@ -4,6 +4,7 @@ import Foundation
 import XCTest
 @testable import Decoy
 @testable import DecoyApollo
+import DecoyTestHelpers
 
 final class DecoyInterceptorTests: XCTestCase {
   private var sut: DecoyInterceptor!
@@ -120,18 +121,4 @@ class BadHTTPRequest<Operation: GraphQLOperation>: Apollo.HTTPRequest<Operation>
   override func toURLRequest() throws -> URLRequest {
     throw NSError(domain: "Fake", code: 999, userInfo: nil)
   }
-}
-
-class MockQueue: QueueInterface {
-  var queuedResponses: [Stub.Identifier : [Stub.Response]] = [:]
-  func queue(stub: Stub) {}
-  func nextQueuedResponse(for identifier: Stub.Identifier) -> Stub.Response? {
-    guard !queuedResponses.isEmpty else { return nil }
-    return queuedResponses[identifier]?.first
-  }
-  func clear() {}
-}
-
-enum TestError: Error {
-  case generic
 }

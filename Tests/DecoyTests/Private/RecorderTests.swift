@@ -1,6 +1,7 @@
 import Foundation
 import XCTest
 @testable import Decoy
+import DecoyTestHelpers
 
 final class RecorderTests: XCTestCase {
   func test_shouldRecord_shouldReadFromProcessInfo_whenRecording() {

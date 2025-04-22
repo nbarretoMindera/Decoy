@@ -1,5 +1,6 @@
 import Apollo
 @testable import Decoy
+import DecoyTestHelpers
 import XCTest
 
 class GraphQLInterceptorIntegrationTests: XCTestCase {
@@ -53,7 +54,7 @@ class GraphQLInterceptorIntegrationTests: XCTestCase {
     }
 
     wait(for: [recordExpectation], timeout: 3)
-    RecorderWaiter.waitForFlush(recorder: decoy.recorder)
+    RecorderWaiter.wait(for: decoy.recorder)
 
     // Create a new Apollo stack with Decoy in forceOffline mode to simulate the replay.
     let processInfo2 = MockProcessInfo()
@@ -130,7 +131,7 @@ class GraphQLInterceptorIntegrationTests: XCTestCase {
     }
 
     wait(for: [recordExp1, recordExp2], timeout: 5)
-    RecorderWaiter.waitForFlush(recorder: decoy.recorder)
+    RecorderWaiter.wait(for: decoy.recorder)
 
     // Create a new Apollo stack with Decoy in forceOffline mode to simulate the replay.
     let processInfo2 = MockProcessInfo()
