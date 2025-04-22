@@ -1,6 +1,4 @@
 To do in Decoy's library itself:
-- Fix the example.
-- Battle-test the GQL implementation a bit more.
 - Add better support for writing errors to disk.
 - Ability to create a shared set of Decoys which are checked first to avoid repetition / app launch boilerplate / huge mocks.
 
