@@ -80,7 +80,7 @@ public class DecoyInterceptor: ApolloInterceptor {
       return
     }
 
-    if let stubResponse = decoy.queue.nextQueuedResponse(for: .signature(signature)) {
+    if let stubResponse = decoy.nextQueuedResponse(for: .signature(signature)) {
       do {
         guard let data = stubResponse.data else {
           return completion(.failure(DecoyInterceptorError.recordedStubContainsNoData))
@@ -129,7 +129,7 @@ public class DecoyInterceptor: ApolloInterceptor {
           let httpURLRequest = try request.toURLRequest()
           let signature = try GraphQLSignature(urlRequest: httpURLRequest)
 
-          self.decoy.recorder.record(
+          self.decoy.record(
             identifier: .signature(signature),
             data: jsonData,
             response: recordedResponse,

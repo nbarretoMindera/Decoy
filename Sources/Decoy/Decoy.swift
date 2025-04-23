@@ -46,55 +46,172 @@ public class Decoy {
   }
 
   /// The queue that stores mocked responses.
-  ///
-  /// This queue holds `Stub` objects keyed by their URL or identifier. When a network request is intercepted,
-  /// Decoy retrieves the appropriate stub from this queue to return the mocked response instead of performing
-  /// a live network request.
-  public var queue: QueueInterface
+  var queue: QueueInterface
 
   /// The loader used to read mocks from a JSON file.
-  ///
-  /// Responsible for reading mock definitions from disk, decoding them into `Stub` objects,
-  /// and supplying them to Decoy for queuing and playback.
   var loader: LoaderInterface
 
   /// The log used to print debug statements that can be read while running tests in a separate sandbox.
-  var logger: LoggerInterface = Logger()
+  let logger: LoggerInterface
+
+  /// The recorder that writes out live network responses.
+  let recorder: RecorderInterface
+
+  /// The `ProcessInfo` instance used to access environment variables.
+  let processInfo: ProcessInfo
+
+  /// A singleton used to facilitate init-less usage of Decoy in apps. Uses default `processInfo`, etc.
+  public static var shared: Decoy = .init()
 
   /// Logs an informational message.
   /// - Parameter message: The message to log.
   public func logInfo(_ message: String) { logger.info(message) }
+
   /// Logs a warning message.
   /// - Parameter message: The message to log.
   public func logWarning(_ message: String) { logger.warning(message) }
+
   /// Logs an error message.
   /// - Parameter message: The message to log.
   public func logError(_ message: String) { logger.error(message) }
 
-  /// The `ProcessInfo` instance used to access environment variables.
-  public var processInfo: ProcessInfo
+  /// An accessor used by GraphQL interceptors to fetch the next queued response.
+  public func nextQueuedResponse(for identifier: Stub.Identifier) -> Stub.Response? {
+    queue.nextQueuedResponse(for: identifier)
+  }
 
-  /// The recorder that writes out live network responses.
-  ///
-  /// When Decoy is in `.record` mode, the recorder captures live network responses and saves them
-  /// as mock stubs for future test runs, enabling test replays without live network dependencies.
-  public let recorder: RecorderInterface
+  /// An accessor used by GraphQL interceptors to record a response.
+  public func record(identifier: Stub.Identifier, data: Data?, response: HTTPURLResponse?, error: Error?) {
+    recorder.record(identifier: identifier, data: data, response: response, error: error)
+  }
 
   /// Initializes a new Decoy instance with default components.
   ///
   /// This initializer is intended for typical usage where Decoy manages its own dependencies.
-  /// It assumes the current process info and a UI testing environment.
   public convenience init() {
     let logger = Logger()
-    let isXCUI = true
 
     self.init(
       recorder: Recorder(processInfo: .processInfo, writer: Writer(processInfo: .processInfo, logger: logger), logger: logger),
-      queue: Queue(isXCUI: isXCUI, logger: logger),
-      loader: Loader(isXCUI: isXCUI),
+      queue: Queue(isXCUI: Decoy.isXCUI, logger: logger),
+      loader: Loader(isXCUI: Decoy.isXCUI),
       logger: logger,
       processInfo: .processInfo
     )
+  }
+
+  /// Initializes a new Decoy instance with all dependencies specified.
+  ///
+  /// This initializer is internal and primarily used for dependency injection and testing.
+  /// - Parameters:
+  ///   - recorder: The recorder responsible for saving live responses.
+  ///   - queue: The queue managing stubbed responses.
+  ///   - loader: The loader reading mock files.
+  ///   - logger: The logger for debug output.
+  ///   - processInfo: The process info for environment access.
+  init(
+    recorder: RecorderInterface,
+    queue: QueueInterface,
+    loader: LoaderInterface,
+    logger: LoggerInterface,
+    processInfo: ProcessInfo
+  ) {
+    self.recorder = recorder
+    self.queue = queue
+    self.loader = loader
+    self.logger = logger
+    self.processInfo = processInfo
+
+    setUp()
+  }
+
+  /// The current operating mode of Decoy.
+  ///
+  /// This property reads the `DECOY_MODE` environment variable to determine how Decoy should behave:
+  /// - `.record`: Capture live responses.
+  /// - `.forceOffline`: Only use mocks, fail if no mock available.
+  /// - `.liveIfUnmocked`: Use live requests if no mock is queued.
+  public var mode: Decoy.Mode {
+    guard let modeString = processInfo.environment[Constants.mode] else { return .liveIfUnmocked }
+    return Decoy.Mode(rawValue: modeString) ?? .liveIfUnmocked
+  }
+
+  public static func setUp() {
+    Decoy.shared.setUp()
+  }
+
+  /// Indicates whether the app is running in a UI test environment without needing to instantiate a Decoy instance.
+  ///
+  /// This property reads the `DECOY_IS_XCUI` environment variable from the stock `processInfo` instance
+  /// and returns `true` if it is set to `"true"`. It is used in app codebases to early exit from Decoy.
+  public static var isXCUI: Bool {
+    ProcessInfo.processInfo.environment[Constants.isXCUI] == "true"
+  }
+}
+
+/// This extension contains internal methods not to be used publicly, but which may be used in testing.
+extension Decoy {
+  /// Indicates whether the app is running in a UI test environment.
+  ///
+  /// This property reads the `DECOY_IS_XCUI` environment variable and returns `true` if it is set to `"true"`.
+  /// It is used internally to determine whether to activate Decoy's mocking behavior.
+  var isXCUI: Bool {
+    processInfo.environment[Constants.isXCUI] == "true"
+  }
+
+  /// Returns a `URLSession` configured to intercept network requests.
+  ///
+  /// When running in UI tests, your app should use this session so that all network requests
+  /// are intercepted by Decoy's interception mechanisms (e.g., `DecoyURLProtocol`), ensuring that
+  /// mock responses are returned or live responses are recorded as needed.
+  ///
+  /// - Note: This session configuration prepends Decoy's protocol to the session's protocol classes.
+  static var urlSession: URLSession {
+    let config = URLSessionConfiguration.default
+
+    /// Prepend Decoy's interception mechanism (e.g., DecoyURLProtocol) to intercept requests.
+    config.protocolClasses?.insert(DecoyURLProtocol.self, at: 0)
+
+    return URLSession(configuration: config)
+  }
+
+  /// Sets up Decoy by loading mocks from disk and queuing them for later use.
+  ///
+  /// This method should be called early in the app's launch or test setup phase when running in a UI test environment.
+  /// It reads the mock directory and filename from environment variables, loads the mocks using the `Loader`,
+  /// and enqueues each stub in the Decoy queue.
+  ///
+  /// If the environment variables are missing or loading fails, appropriate error messages are logged.
+  ///
+  /// - Note: This method is a no-op if the app is not running in a UI test environment.
+  func setUp() {
+    // Only proceed if the app is running in a UI test environment.
+    guard isXCUI else { return }
+
+    // Retrieve the directory and filename for the mocks from environment variables.
+    guard let directory = processInfo.environment[Constants.mockDirectory],
+          let filename = processInfo.environment[Constants.mockFilename] else {
+      logError("setUp: Missing environment variables for mock directory or filename.")
+      return
+    }
+
+    // Create a URL for the mock file using safe URL initializers.
+    var url = URL(safePath: directory)
+    url.safeAppend(path: filename)
+
+    // Load the mocks from the JSON file.
+    guard let stubs = loader.loadJSON(from: url) else {
+      return logError("setUp: Failed to load mocks.")
+    }
+
+    // Queue each loaded stub for later retrieval.
+    stubs.forEach { stub in
+      queue.queue(stub: stub)
+      logInfo("setUp: Queued decoy for \(stub.identifier)")
+    }
+
+    /// Register the URL protocol.
+    DecoyURLProtocol.register(decoy: self)
   }
 
   /// Initializes a new Decoy instance with a specified `ProcessInfo`.
@@ -133,120 +250,10 @@ public class Decoy {
       processInfo: processInfo
     )
   }
+}
 
-  /// Initializes a new Decoy instance with all dependencies specified.
-  ///
-  /// This initializer is internal and primarily used for dependency injection and testing.
-  /// - Parameters:
-  ///   - recorder: The recorder responsible for saving live responses.
-  ///   - queue: The queue managing stubbed responses.
-  ///   - loader: The loader reading mock files.
-  ///   - logger: The logger for debug output.
-  ///   - processInfo: The process info for environment access.
-  init(
-    recorder: RecorderInterface,
-    queue: QueueInterface,
-    loader: LoaderInterface,
-    logger: LoggerInterface,
-    processInfo: ProcessInfo
-  ) {
-    self.recorder = recorder
-    self.queue = queue
-    self.loader = loader
-    self.processInfo = processInfo
-
-    setUp()
-  }
-
-  /// The current operating mode of Decoy.
-  ///
-  /// This property reads the `DECOY_MODE` environment variable to determine how Decoy should behave:
-  /// - `.record`: Capture live responses.
-  /// - `.forceOffline`: Only use mocks, fail if no mock available.
-  /// - `.liveIfUnmocked`: Use live requests if no mock is queued.
-  public var mode: Decoy.Mode {
-    guard let modeString = processInfo.environment[Constants.mode] else { return .liveIfUnmocked }
-    return Decoy.Mode(rawValue: modeString) ?? .liveIfUnmocked
-  }
-
-  /// Sets up Decoy by loading mocks from disk and queuing them for later use.
-  ///
-  /// This method should be called early in the app's launch or test setup phase when running in a UI test environment.
-  /// It reads the mock directory and filename from environment variables, loads the mocks using the `Loader`,
-  /// and enqueues each stub in the Decoy queue.
-  ///
-  /// If the environment variables are missing or loading fails, appropriate error messages are logged.
-  ///
-  /// - Note: This method is a no-op if the app is not running in a UI test environment.
-  public func setUp() {
-    // Only proceed if the app is running in a UI test environment.
-    guard isXCUI else { return }
-
-    // Retrieve the directory and filename for the mocks from environment variables.
-    guard let directory = processInfo.environment[Constants.mockDirectory],
-          let filename = processInfo.environment[Constants.mockFilename] else {
-      logError("setUp: Missing environment variables for mock directory or filename.")
-      return
-    }
-
-    // Create a URL for the mock file using safe URL initializers.
-    var url = URL(safePath: directory)
-    url.safeAppend(path: filename)
-
-    // Load the mocks from the JSON file.
-    guard let stubs = loader.loadJSON(from: url) else {
-      return logError("setUp: Failed to load mocks.")
-    }
-
-    // Queue each loaded stub for later retrieval.
-    stubs.forEach { stub in
-      queue.queue(stub: stub)
-      logInfo("setUp: Queued decoy for \(stub.identifier)")
-    }
-  }
-
-  /// Clears shared state between tests.
-  ///
-  /// This method empties the stub queue and resets the `DecoyURLProtocol` live session provider
-  /// to a default session configuration without Decoy's interception protocol. It should be called
-  /// between tests to ensure isolation and prevent state leakage.
-  public func reset() {
-    queue.clear()
-    DecoyURLProtocol.liveSessionProvider = {
-      let config = URLSessionConfiguration.default
-      config.protocolClasses = config.protocolClasses?.filter { $0 != DecoyURLProtocol.self }
-      return URLSession(configuration: config)
-    }
-  }
-
-  /// Returns a `URLSession` configured to intercept network requests.
-  ///
-  /// When running in UI tests, your app should use this session so that all network requests
-  /// are intercepted by Decoy's interception mechanisms (e.g., `DecoyURLProtocol`), ensuring that
-  /// mock responses are returned or live responses are recorded as needed.
-  ///
-  /// - Note: This session configuration prepends Decoy's protocol to the session's protocol classes.
-  public var urlSession: URLSession {
-    let config = URLSessionConfiguration.default
-    // Prepend Decoy's interception mechanism (e.g., DecoyURLProtocol) to intercept requests.
-    config.protocolClasses?.insert(DecoyURLProtocol.self, at: 0)
-    return URLSession(configuration: config)
-  }
-
-  /// Indicates whether the app is running in a UI test environment.
-  ///
-  /// This property reads the `DECOY_IS_XCUI` environment variable and returns `true` if it is set to `"true"`.
-  /// It is used internally to determine whether to activate Decoy's mocking behavior.
-  var isXCUI: Bool {
-    processInfo.environment[Constants.isXCUI] == "true"
-  }
-
-  /// Indicates whether the app is running in a UI test environment without needing to instantiate a Decoy instance.
-  ///
-  /// This property reads the `DECOY_IS_XCUI` environment variable from the provided `ProcessInfo`
-  /// and returns `true` if it is set to `"true"`. It is used in app codebases to early exit from Decoy without needing
-  /// to instantiate it.
-  public static func isXCUI(processInfo: ProcessInfo = .processInfo) -> Bool {
-    processInfo.environment[Constants.isXCUI] == "true"
+public extension URLSession {
+  static var decoy: URLSession {
+    Decoy.urlSession
   }
 }

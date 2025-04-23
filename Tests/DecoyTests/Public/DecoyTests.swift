@@ -9,12 +9,12 @@ final class DecoyTests: XCTestCase {
   }
 
   func test_urlSession_shouldReturnAURLSession() {
-    let session = Decoy.urlSession
+    let session: URLSession = .decoy
     XCTAssertNotNil(session)
   }
 
   func test_urlSession_configuration_includesDecoyURLProtocol() {
-    let session = Decoy.urlSession
+    let session = URLSession.decoy
     let config = session.configuration
     let containsDecoyProtocol = config.protocolClasses?.contains(where: { $0 == DecoyURLProtocol.self }) ?? false
     XCTAssert(containsDecoyProtocol, "Decoy.urlSession configuration should include DecoyURLProtocol")
