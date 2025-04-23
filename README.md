@@ -6,23 +6,29 @@
 
 ## ❓ What is Decoy?
 
-Decoy is a Swift package that intercepts network requests made via URLSession or GraphQL via Apollo and returns pre-configured mock responses (or records live responses) without the need for an external HTTP server. Designed primarily for XCUI tests, Decoy lets you simulate network responses entirely within Xcode, so your UI tests run quickly and reliably.
+Decoy is a Swift package that intercepts network requests made via URLSession or GraphQL via Apollo and returns pre-configured mock responses (or records live responses) without the need for any external HTTP server. Designed for XCUI tests, Decoy lets you simulate network responses entirely within Xcode, so your UI tests run quickly and reliably.
 
 Using Decoy, you can:
 * **Record live responses**: Automatically capture real API responses and store them as mocks.
-* **Queue mocked responses**: Specify and queue JSON mocks for particular endpoint URLs.
+* **Queue mocked responses**: Specify and queue JSON mocks for particular endpoint URLs or GQL queries.
 * **Replay mocks in sequence**: Return queued mocks in a controlled flow during testing.
 * **Keep production code untouched**: Your app uses URLSession / Apollo as normal, and Decoy intercepts calls under the hood.
 
 ## 🧱 How do I implement it?
 
-The `Decoy` package contains three targets: `Decoy`, `DecoyApollo`, and `DecoyXCUI`. `Decoy` must be added as a dependency of your app target. `DecoyApollo` should also be added to your app target if it uses Apollo and you'd like to mock GraphQL. `DecoyXCUI` should be added to your UI testing target. These packages are only a few kilobytes in size and will have no major impact on the size of your release binary in the App Store. Decoy works best when your app uses a shared instance of `URLSession` or a single `Apollo` instance, as in this case, you only need `import Decoy` once.
+The `Decoy` package contains three targets: `Decoy`, `DecoyApollo`, and `DecoyXCUI`.
+* `Decoy` must be added as a dependency of your app target.
+* `DecoyApollo` should also be added to your app target if it uses Apollo and you'd like to mock GraphQL.
+* `DecoyXCUI` should be added to your UI testing target.
 
-For a setup without GraphQL, to get up and running:
+These packages are only a few kilobytes in size and will have no major impact on the size of your release binary in the App Store. Decoy works best when your app uses a shared instance of `URLSession` or a single `Apollo` instance, as in this case, you only need `import Decoy` once and call a one-line setUp method.
+
+To get up and running:
 
 ### In the project:
 * Add the Decoy package as a depedency.
 * Choose the `Decoy` target as a dependency for your **app** target.
+* If using GraphQL, choose the `DecoyApollo` target as a dependency for your **app** target.
 * Choose the `DecoyXCUI` target as a dependency for your **UI test** target.
 
 ### In the app:
@@ -32,43 +38,15 @@ For a setup without GraphQL, to get up and running:
   ```
 * When you use `URLSession` in your app, use `Decoy.urlSession` instead:
   ```
-  FooAPIClient(urlSession: Decoy.urlSession)
+  FooAPIClient(urlSession: .decoy)
   ```
-* Or, if you use a custom `URLConfiguration`, add `DecoyURLProtocol` to its list of `protocolClasses`:
+* Or, if you use a custom `URLConfiguration`, add a Decoy to it:
   ```
-  configuration.protocolClasses = [DecoyURLProtocol.self] + (configuration.protocolClasses ?? [])
+  configuration.insertDecoy()
   ```
-
-### In the UI test target:
-* In your UI test target, have the test classes inherit from `DecoyTestCase`.
-* Call the custom `setUp()` method, like so, passing in the test mode you'd like to use.
+* If you're using Apollo, add a `DecoyInterceptor` to your interceptor chain at the top:
   ```
-  override func setUp() {
-    super.setUp(mode: .record) // or .liveIfUnmocked, .forceOffline
-  }
-  ```
-* This will launch your app with the required environment variables to use Decoy.
-
-For a setup using GraphQL:
-
-### In the project:
-* Add the Decoy package as a depedency.
-* Choose the `Decoy` target as a dependency for your **app** target.
-* Choose the `DecoyApollo` target as a dependency for your **app** target.
-* Choose the `DecoyXCUI` target as a dependency for your **UI test** target.
-
-### In the app:
-* Set up Decoy on launch:
-  ```
-  Decoy.setUp()
-  ```
-* When you use `Apollo` in your app, add a `DecoyInterceptor` in front of any others.
-  ```
-  override public func interceptors<Operation: GraphQLOperation>(for operation: Operation) -> [ApolloInterceptor] {
-    let interceptorsToAdd: [ApolloInterceptor] = [
-      DecoyInterceptor(),
-      // Any of your other interceptors...
-    ]
+  interceptors.insert(DecoyInterceptor(), at: 0)
   ```
 
 ### In the UI test target:
@@ -80,7 +58,6 @@ For a setup using GraphQL:
   }
   ```
 * This will launch your app with the required environment variables to use Decoy.
-
 
 ## 🔴 Can I record with it?
 
@@ -95,7 +72,7 @@ Yes! One of Decoy' handier features is the ability to record real responses prov
   }
   ```
 * Now, run the test again.
-* As the test progresses, each call to the network through your mocked `URLSession` will now be captured.
+* As the test progresses, each call to the network through your mocked `URLSession` or interceptor will now be captured.
 * When the test completes, these are written to a `__Decoys__` directory in your UI tests target.
 * They will be automatically titled with the name of the individual test case you were running, plus `.json`.
 
@@ -107,18 +84,18 @@ Yes! One of Decoy' handier features is the ability to record real responses prov
   }
   ```
 * Now, re-run your tests.
-* Decoy will detect that a mock exists with the given test name, and will pass it on to your app.
+* Decoy will detect that a mock exists with the given test name, and will pass it on to your app when requested.
 
 ## 🔨 How does it work?
 
 For `URLSession`, Decoy leverages a custom URLProtocol (`DecoyURLProtocol`) to intercept all network requests made by a URLSession. Or, when mocking Apollo, Decoy provides a custom Interceptor which you can add to retrieve and serve the mocks. The protocol and interceptor:
-* Checks for a queued mock in Decoy’s internal queue:
-  * If a mock exists, it returns the mock (and records it if recording is enabled).
-* Performs a live network request if no mock is found and the mode is .liveIfUnmocked or .record:
-  * In record mode, it records the live response.
-* Throws an error in .forceOffline mode if no mock is available.
+* Check for a queued mock in Decoy’s internal queue:
+  * If a mock exists, return the mock (and record it if recording is enabled).
+* Perform a live network request if no mock is found and the mode is .liveIfUnmocked or .record:
+  * In record mode, record the live response.
+* Throw an error in .forceOffline mode if no mock is available for purely offline testing.
 
-Decoy also provides a `setUp()` function that loads mocks from disk (using environment-specified directory and filenames) and queues them, and a `urlSession` computed property that returns a `URLSession` configured to use the `DecoyURLProtocol`.
+Decoy also provides a `setUp()` function that loads mocks from disk (using environment-specified directory and filenames) and queues them, and extends `URLSession` with `URLSession.decoy`, which returns a `URLSession` pre-configured to use the `DecoyURLProtocol`.
 
 ## 👩‍💻 Can I try it for myself?
 
