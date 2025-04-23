@@ -137,6 +137,7 @@ public class Decoy {
   }
 
   public static func setUp() {
+    guard Decoy.isXCUI else { return }
     Decoy.shared.setUp()
   }
 
@@ -170,7 +171,9 @@ extension Decoy {
     let config = URLSessionConfiguration.default
 
     /// Prepend Decoy's interception mechanism (e.g., DecoyURLProtocol) to intercept requests.
-    config.protocolClasses?.insert(DecoyURLProtocol.self, at: 0)
+    if Decoy.isXCUI {
+      config.protocolClasses?.insert(DecoyURLProtocol.self, at: 0)
+    }
 
     return URLSession(configuration: config)
   }
@@ -255,5 +258,12 @@ extension Decoy {
 public extension URLSession {
   static var decoy: URLSession {
     Decoy.urlSession
+  }
+}
+
+public extension URLSessionConfiguration {
+  func insertDecoy() {
+    guard Decoy.isXCUI else { return }
+    protocolClasses = [DecoyURLProtocol.self] + (protocolClasses ?? [])
   }
 }

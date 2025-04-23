@@ -39,7 +39,7 @@ public class DecoyInterceptor: ApolloInterceptor {
   /// Creates a new `DecoyInterceptor` with the specified Decoy instance.
   ///
   /// - Parameter decoy: The Decoy instance that manages stub queues and recording.
-  public init(decoy: Decoy) {
+  public init(decoy: Decoy = .shared) {
     self.decoy = decoy
   }
 

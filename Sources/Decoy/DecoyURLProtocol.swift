@@ -58,7 +58,8 @@ public class DecoyURLProtocol: URLProtocol {
   /// - Parameter request: The URL request to evaluate.
   /// - Returns: `true` if the protocol should handle the request; otherwise, `false`.
   public override class func canInit(with request: URLRequest) -> Bool {
-    currentDecoy().isXCUI
+    guard Decoy.isXCUI else { return false }
+    return currentDecoy().isXCUI
   }
 
   /// Returns a canonical version of the given request.
