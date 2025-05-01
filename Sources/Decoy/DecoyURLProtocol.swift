@@ -39,11 +39,8 @@ public class DecoyURLProtocol: URLProtocol {
   /// This method is used internally to access the active `Decoy` for mocking and recording.
   /// Calling this without a registered instance will cause a runtime fatal error.
   /// - Returns: The active `Decoy` instance.
-  public static func currentDecoy() -> Decoy {
-    guard let instance = decoyInstance else {
-      fatalError("DecoyURLProtocol: No Decoy instance registered.")
-    }
-    return instance
+  public static var currentDecoy: Decoy? {
+    decoyInstance
   }
 
   /// The current mode of operation for the protocol.
@@ -59,7 +56,7 @@ public class DecoyURLProtocol: URLProtocol {
   /// - Returns: `true` if the protocol should handle the request; otherwise, `false`.
   public override class func canInit(with request: URLRequest) -> Bool {
     guard Decoy.isXCUI else { return false }
-    return currentDecoy().isXCUI
+    return currentDecoy?.isXCUI ?? false
   }
 
   /// Returns a canonical version of the given request.
@@ -86,7 +83,9 @@ public class DecoyURLProtocol: URLProtocol {
     if handleMockResponse(for: url) { return }
 
     // No mock available – decide behavior based on Decoy mode.
-    switch DecoyURLProtocol.currentDecoy().mode {
+    guard let mode = DecoyURLProtocol.currentDecoy?.mode else { return }
+
+    switch mode {
     case .liveIfUnmocked, .record:
       performLiveRequest(for: request, url: url)
     case .forceOffline:
@@ -109,7 +108,7 @@ private extension DecoyURLProtocol {
   /// - Parameter url: The URL of the request.
   /// - Returns: `true` if a mock response was handled; otherwise, `false`.
   func handleMockResponse(for url: URL) -> Bool {
-    let decoy = DecoyURLProtocol.currentDecoy()
+    guard let decoy = DecoyURLProtocol.currentDecoy else { return false }
 
     if let mockResponse = decoy.queue.nextQueuedResponse(for: .url(url)) {
       if let data = mockResponse.data {
@@ -137,7 +136,7 @@ private extension DecoyURLProtocol {
   ///   - request: The original URL request.
   ///   - url: The URL of the request.
   func performLiveRequest(for request: URLRequest, url: URL) {
-    let decoy = DecoyURLProtocol.currentDecoy()
+    guard let decoy = DecoyURLProtocol.currentDecoy else { return }
 
     let liveSession = DecoyURLProtocol.liveSessionProvider()
 
