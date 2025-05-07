@@ -188,33 +188,28 @@ extension Decoy {
   ///
   /// - Note: This method is a no-op if the app is not running in a UI test environment.
   func setUp() {
-    // Only proceed if the app is running in a UI test environment.
+    /// Only proceed if the app is running in a UI test environment.
     guard isXCUI else { return }
 
-    // Retrieve the directory and filename for the mocks from environment variables.
+    /// Register the URL protocol.
+    DecoyURLProtocol.register(decoy: self)
+
+    /// Retrieve the directory and filename for the mocks from environment variables.
     guard let directory = processInfo.environment[Constants.mockDirectory],
           let filename = processInfo.environment[Constants.mockFilename] else {
       logError("setUp: Missing environment variables for mock directory or filename.")
       return
     }
 
-    // Create a URL for the mock file using safe URL initializers.
+    /// Create a URL for the mock file using safe URL initializers.
     var url = URL(safePath: directory)
     url.safeAppend(path: filename)
 
-    // Load the mocks from the JSON file.
-    guard let stubs = loader.loadJSON(from: url) else {
-      return logError("setUp: Failed to load mocks.")
-    }
-
-    // Queue each loaded stub for later retrieval.
-    stubs.forEach { stub in
+    /// Queue each loaded stub for later retrieval.
+    loader.loadJSON(from: url)?.forEach { stub in
       queue.queue(stub: stub)
       logInfo("setUp: Queued decoy for \(stub.identifier)")
     }
-
-    /// Register the URL protocol.
-    DecoyURLProtocol.register(decoy: self)
   }
 
   /// Initializes a new Decoy instance with a specified `ProcessInfo`.
