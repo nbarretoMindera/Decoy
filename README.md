@@ -101,6 +101,20 @@ Decoy also provides a `setUp()` function that loads mocks from disk (using envir
 
 There's a `DecoyExample` in this repository. You can build it and take a look, it's super simple. It uses a couple of free public APIs as examples and its UI test target shows how to mock single or multiple calls to single or multiple endpoints with Decoy.
 
+## 📚 If I'm testing an app which makes lots of calls on launch, how do I avoid having to store mocks for those calls in every single test?
+
+If your app calls a few services on launch but your actual test is for something further down the funnel, you can make use of Shared Mocks. Decoy supports a fallback destination for mocks, the path to which can be specified when creating your UI tests. To do this:
+* Where your tests call Decoy's `setUp` method, pass in a `suiteSpecificMocksPath`, like so:
+  ```
+  override func setUp() {
+    let sharedMockPath = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+    super.setUp(suiteSpecificMocksPath: sharedMockPath.absoluteString, mode: .forceOffline)
+    app.launch()
+  }
+  ```
+* You can then create a file called `shared.json` at the `sharedMockPath` (you'll need to do this manually) and cut/paste any mocks from tests which are repeated into that file.
+* Decoy will prefer a mock from the test-specific mocks folder, but if one is not found and you're in `liveIfUnmocked` or `forceOffline` modes, it'll then check the shared mock folder, if you specified it.
+
 ## 🌊 How do I know that my mock schemas aren't out of date with my real backend?
 * This is a nice incidental benefit of Decoy, and while it's reactive rather than proactive, it means that your tests fail if your model objects change.
 * Your mocks represent a moment in time at which they were recorded, and your UI test that uses them is linked to that moment.
@@ -116,4 +130,3 @@ It's still early days, and I'm excited to see how we can continue to grow Decoy 
 Some specific things that still need doing / some ideas for the future:
 * Enhancing error representation in JSON mocks.
 * Proactively verify that recorded mocks are still up to date versus responses delivered from the backend they are mocking (avoid mock drift).
-* Avoid app launch boilerplate in mocks by recording a separate set of "base mocks" which are checked if not found amongst your specific test's mocks. 
