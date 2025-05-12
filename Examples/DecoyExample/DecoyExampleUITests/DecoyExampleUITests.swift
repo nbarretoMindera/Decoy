@@ -9,7 +9,7 @@ final class DecoyExampleUITests: DecoyTestCase {
   /// If you pass `.forceOffline`, Decoy will look for mocks, use them if available, and fail if a mock is not available.
   override func setUp() {
     let sharedMockPath = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
-    super.setUp(suiteSpecificMocksPath: sharedMockPath.absoluteString, mode: .record)
+    super.setUp(suiteSpecificMocksPath: sharedMockPath.absoluteString, mode: .forceOffline)
     app.launch()
   }
 
