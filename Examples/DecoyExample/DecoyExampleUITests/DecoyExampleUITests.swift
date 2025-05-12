@@ -8,7 +8,8 @@ final class DecoyExampleUITests: DecoyTestCase {
   /// If you pass `.liveIfUnmocked`, Decoy will look for a previously-recorded mock, use it if available, or use the real API if not.
   /// If you pass `.forceOffline`, Decoy will look for mocks, use them if available, and fail if a mock is not available.
   override func setUp() {
-    super.setUp(mode: .record)
+    let sharedMockPath = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+    super.setUp(suiteSpecificMocksPath: sharedMockPath.absoluteString, mode: .record)
     app.launch()
   }
 

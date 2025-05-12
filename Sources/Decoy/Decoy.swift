@@ -26,8 +26,10 @@ public class Decoy {
     public static let isXCUI = "DECOY_IS_XCUI"
     /// Environment variable key for specifying Decoy’s operating mode.
     public static let mode = "DECOY_MODE"
-    /// Environment variable key for the directory where mock files are stored.
+    /// Environment variable key for the directory where mock files specific to the current test case are stored.
     public static let mockDirectory = "DECOY_MOCK_DIRECTORY"
+    /// Environment variable key for the directory where shared mocks across all test cases in the suite are stored.
+    public static let sharedMockDirectory = "DECOY_SHARED_MOCK_DIRECTORY"
     /// Environment variable key for the filename of the mock file.
     public static let mockFilename = "DECOY_MOCK_FILENAME"
     /// The folder name used for storing decoys.
@@ -202,11 +204,24 @@ extension Decoy {
     }
 
     /// Create a URL for the mock file using safe URL initializers.
-    var url = URL(safePath: directory)
-    url.safeAppend(path: filename)
+    var testSpecificMocksURL = URL(safePath: directory)
+    testSpecificMocksURL.safeAppend(path: filename)
+
+    if let sharedMocksDirectory = processInfo.environment[Constants.sharedMockDirectory] {
+      var sharedMocksURL = URL(safePath: sharedMocksDirectory)
+      sharedMocksURL.safeAppend(path: "shared.json")
+
+      /// If shared mocks are being used, load and queue those first, so that test-specific mocks can override them.
+      loader.loadJSON(from: sharedMocksURL)?.forEach { stub in
+        queue.queue(stub: stub)
+        logInfo("setUp: Queued shared decoy for \(stub.identifier)")
+      }
+    } else {
+      logInfo("setUp: No shared decoys found – path not provided.")
+    }
 
     /// Queue each loaded stub for later retrieval.
-    loader.loadJSON(from: url)?.forEach { stub in
+    loader.loadJSON(from: testSpecificMocksURL)?.forEach { stub in
       queue.queue(stub: stub)
       logInfo("setUp: Queued decoy for \(stub.identifier)")
     }

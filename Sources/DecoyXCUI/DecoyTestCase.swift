@@ -24,20 +24,29 @@ open class DecoyTestCase: XCTestCase {
   /// 2. Assigns a logger to be able to print useful output to the console during UI testing, which occurs in a separate process.
   /// 3. Determines the directory where mock data should be stored.
   /// 4. Configures the `XCUIApplication` instance with the correct launch environment for mock data usage.
-  public func setUp(path: String = #filePath, mode: Decoy.Mode = .liveIfUnmocked) {
+  public func setUp(
+    testSpecificMocksPath: String = #filePath,
+    suiteSpecificMocksPath: String? = nil,
+    mode: Decoy.Mode = .liveIfUnmocked
+  ) {
     super.setUp()
 
     // Set up our log stream to begin reading from /tmp/.
     logStream = LogStream(testCase: self)
 
     // Ensure we have a directory to write stubs to.
-    guard let directory = buildDirectoryForStub(path: path) else {
+    guard let directory = buildDirectoryForStub(path: testSpecificMocksPath) else {
       return XCTFail("Could not generate path to which to write stub.")
+    }
+
+    var sharedMocksDirectory: String?
+    if let suiteSpecificMocksPath {
+      sharedMocksDirectory = buildSharedMocksDirectory(path: suiteSpecificMocksPath)
     }
 
     // If recording, wipe the previous mock file before making a new one.
     if mode == .record {
-      guard let directory = buildDirectoryForStub(path: path) else {
+      guard let directory = buildDirectoryForStub(path: testSpecificMocksPath) else {
         return XCTFail("Record mode was specified, but could not clear existing decoys.")
       }
       let path = directory + "/\(mockName).json"
@@ -45,7 +54,11 @@ open class DecoyTestCase: XCTestCase {
     }
 
     // Configure and make the app available to tests.
-    app = appWithConfiguredLaunchEnvironment(directory: directory, mode: mode)
+    app = appWithConfiguredLaunchEnvironment(
+      mockDirectory: directory,
+      sharedMockDirectory: sharedMocksDirectory,
+      mode: mode
+    )
   }
 
   /// Builds the directory path for storing mock data.
@@ -65,6 +78,16 @@ open class DecoyTestCase: XCTestCase {
     return url?.absoluteString
   }
 
+  private func buildSharedMocksDirectory(path: String) -> String {
+    let testRoot = URL(fileURLWithPath: path)
+    let sharedPath = testRoot
+      .appendingPathComponent("__Decoys__")
+
+    print(sharedPath.path)
+
+    return sharedPath.path
+  }
+
   /// Configures an `XCUIApplication` instance with the necessary launch environment for Decoy.
   ///
   /// - Parameters:
@@ -78,13 +101,22 @@ open class DecoyTestCase: XCTestCase {
   ///    - `Decoy.Constants.mode` → Defines how requests should be handled.
   ///    - `Decoy.Constants.isXCUI` → Marks that the app is running in an XCUI test.
   ///    - `Decoy.Constants.mockDirectory` → Specifies where mock data is stored.
+  ///    - `Decoy.Constants.mockDirectory` → Specifies where mock data is stored.
   ///    - `Decoy.Constants.mockFilename` → Defines the filename for mock data storage.
-  private func appWithConfiguredLaunchEnvironment(directory: String, mode: Decoy.Mode) -> XCUIApplication {
+  private func appWithConfiguredLaunchEnvironment(
+    mockDirectory: String,
+    sharedMockDirectory: String?,
+    mode: Decoy.Mode
+  ) -> XCUIApplication {
     let app = XCUIApplication()
+
+    print(mockDirectory)
+    print(sharedMockDirectory)
 
     app.launchEnvironment[Decoy.Constants.mode] = mode.rawValue
     app.launchEnvironment[Decoy.Constants.isXCUI] = String(true)
-    app.launchEnvironment[Decoy.Constants.mockDirectory] = directory
+    app.launchEnvironment[Decoy.Constants.mockDirectory] = mockDirectory
+    app.launchEnvironment[Decoy.Constants.sharedMockDirectory] = sharedMockDirectory
     app.launchEnvironment[Decoy.Constants.mockFilename] = "\(mockName).json"
 
     return app
