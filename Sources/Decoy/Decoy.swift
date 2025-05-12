@@ -207,11 +207,12 @@ extension Decoy {
     var testSpecificMocksURL = URL(safePath: directory)
     testSpecificMocksURL.safeAppend(path: filename)
 
+    /// If a path to shared mocks (i.e. those which should be applied to the entire suite) was provided,
+    /// load them first to ensure that any test-specific mocks will override them in the FILO queue.
     if let sharedMocksDirectory = processInfo.environment[Constants.sharedMockDirectory] {
       var sharedMocksURL = URL(safePath: sharedMocksDirectory)
       sharedMocksURL.safeAppend(path: "shared.json")
 
-      /// If shared mocks are being used, load and queue those first, so that test-specific mocks can override them.
       loader.loadJSON(from: sharedMocksURL)?.forEach { stub in
         queue.queue(stub: stub)
         logInfo("setUp: Queued shared decoy for \(stub.identifier)")
@@ -220,7 +221,7 @@ extension Decoy {
       logInfo("setUp: No shared decoys found – path not provided.")
     }
 
-    /// Queue each loaded stub for later retrieval.
+    /// Queue each loaded test-specific stub for later retrieval.
     loader.loadJSON(from: testSpecificMocksURL)?.forEach { stub in
       queue.queue(stub: stub)
       logInfo("setUp: Queued decoy for \(stub.identifier)")
