@@ -93,7 +93,7 @@ public struct Stub {
         "operationName": signature.operationName,
         "query": signature.query,
         "endpoint": signature.endpoint.absoluteString,
-        "variables": signature.variables.mapValues { $0.description }
+        "variables": signature.variables.mapValues { $0.jsonSerializationSafe }
       ]
     } else {
       fatalError("Attempted to record a stub with an invalid identifier.")

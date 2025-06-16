@@ -74,6 +74,30 @@ public enum JSONValue: Codable, Hashable, CustomStringConvertible {
     }
   }
 
+    public var jsonSerializationSafe: Any {
+      switch self {
+      case .string(let value):
+        return value
+      case .number(let value):
+        if value.truncatingRemainder(dividingBy: 1) == 0 {
+          return value
+        } else {
+          return value
+        }
+      case .bool(let value):
+        return value
+      case .array(let array):
+          return array.map { $0.jsonSerializationSafe }
+      case .object(let dict):
+        let items = dict
+          .sorted(by: { $0.key < $1.key })
+          .map { "\($0.key): \($0.value)" }
+        return "{" + items.joined(separator: ", ") + "}"
+      case .null:
+        return "null"
+      }
+    }
+
   /// Encodes this value into the given encoder.
   ///
   /// The encoding matches the JSON type represented by this value.
