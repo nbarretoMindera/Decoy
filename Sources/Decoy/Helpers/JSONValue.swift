@@ -79,11 +79,7 @@ public enum JSONValue: Codable, Hashable, CustomStringConvertible {
     case .string(let value):
       return value
     case .number(let value):
-      if value.truncatingRemainder(dividingBy: 1) == 0 {
-        return value
-      } else {
-        return value
-      }
+      return value
     case .bool(let value):
       return value
     case .array(let array):
