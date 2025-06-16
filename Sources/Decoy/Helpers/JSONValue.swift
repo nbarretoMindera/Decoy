@@ -96,8 +96,8 @@ public enum JSONValue: Codable, Hashable, CustomStringConvertible {
       return safeDict
     case .null:
       return "null"
+    }
   }
- }
 
   /// Encodes this value into the given encoder.
   ///
