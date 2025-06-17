@@ -91,7 +91,7 @@ public enum JSONValue: Codable, Hashable, CustomStringConvertible {
       }
       return safeDict
     case .null:
-      return "null"
+      return NSNull()
     }
   }
 
