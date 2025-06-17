@@ -74,6 +74,27 @@ public enum JSONValue: Codable, Hashable, CustomStringConvertible {
     }
   }
 
+  public var jsonSerializationSafe: Any {
+    switch self {
+    case .string(let value):
+      return value
+    case .number(let value):
+      return value
+    case .bool(let value):
+      return value
+    case .array(let array):
+      return array.map { $0.jsonSerializationSafe }
+    case .object(let dict):
+      var safeDict: [String: Any] = [:]
+      for (key, value) in dict {
+        safeDict[key] = value.jsonSerializationSafe
+      }
+      return safeDict
+    case .null:
+      return NSNull()
+    }
+  }
+
   /// Encodes this value into the given encoder.
   ///
   /// The encoding matches the JSON type represented by this value.
