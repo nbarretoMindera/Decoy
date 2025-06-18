@@ -57,4 +57,18 @@ extension URL {
       self.appendPathComponent(path)
     }
   }
+
+  func sortQueryItemsByName() -> URL? {
+    guard
+        var components = URLComponents(url: self, resolvingAgainstBaseURL: false),
+        let queryItems = components.queryItems,
+        queryItems.count > 1
+    else {
+      return self
+    }
+
+    components.queryItems = queryItems.sorted { $0.name < $1.name }
+
+    return components.url
+  }
 }
