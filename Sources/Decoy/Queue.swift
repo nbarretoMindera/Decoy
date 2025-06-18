@@ -75,6 +75,20 @@ public class Queue: QueueInterface {
     guard isXCUI else { return nil }
 
     if case .url(let url) = identifier {
+        if url.absoluteString.contains("basket") {
+            print("🔍 nextQueuedResponse: \(url)")
+            queuedResponses.keys.forEach {
+                switch $0 {
+                case .url(let url):
+                    if url.absoluteString.contains("basket") {
+                        print("🔍 nextQueuedResponse in queue: \(url)")
+                    }
+                default:
+                    break
+                }
+                
+            }
+        }
       if let stub = queuedResponses[.url(url)]?.popLast() {
         logger.info("Providing decoy for url: \(url)")
         return stub

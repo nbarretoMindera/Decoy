@@ -79,8 +79,14 @@ public class DecoyURLProtocol: URLProtocol {
       return
     }
 
+      if url.absoluteString.contains("basket") {
+          print("🔍 Sorting URL Before: \(url)")
+      }
     // Sort URL to help comparison between intercepts and mocks
     let sortedURL = url.sortQueryItemsByName() ?? url
+      if url.absoluteString.contains("basket") {
+          print("🔍 Sorting URL Before: \(url)")
+      }
 
     // First, attempt to handle the request with a queued mock.
     if handleMockResponse(for: sortedURL) { return }

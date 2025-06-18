@@ -82,6 +82,9 @@ private extension Loader {
       let data = data(from: mock)
       let urlResponse = urlResponse(to: url, from: mock)
       let response = Stub.Response(data: data, urlResponse: urlResponse, error: error(from: mock))
+        if url.absoluteString.contains("basket") {
+            print("🔍 stub from json: \(url)")
+        }
       return Stub(identifier: .url(url), response: response)
     } else if case .signature(let signature) = id {
       let data = data(from: mock)
