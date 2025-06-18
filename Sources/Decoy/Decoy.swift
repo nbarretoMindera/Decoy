@@ -226,6 +226,8 @@ extension Decoy {
       queue.queue(stub: stub)
       logInfo("setUp: Queued decoy for \(stub.identifier)")
     }
+
+    logWarning("All queuedResponses \(queue.queuedResponses)")
   }
 
   /// Initializes a new Decoy instance with a specified `ProcessInfo`.
