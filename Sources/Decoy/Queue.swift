@@ -80,6 +80,7 @@ public class Queue: QueueInterface {
         return stub
       } else {
         logger.warning("No decoy was queued for url: \(url)")
+        logger.warning("No decoy was queued for url: \(queuedResponses)")
         return nil
       }
     } else if case .signature(let graphQLSignature) = identifier {
