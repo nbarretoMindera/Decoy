@@ -61,6 +61,12 @@ open class DecoyTestCase: XCTestCase {
     )
   }
 
+    override open func tearDown() {
+        logStream.tearDown()
+
+        super.tearDown()
+    }
+
   /// Builds the directory path for storing mock data.
   ///
   /// - Parameters:
