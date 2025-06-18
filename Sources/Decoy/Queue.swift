@@ -76,18 +76,18 @@ public class Queue: QueueInterface {
 
     if case .url(let url) = identifier {
       if let stub = queuedResponses[.url(url)]?.popLast() {
-        logger.info("Providing decoy for \(url)")
+        logger.info("Providing decoy for url: \(url)")
         return stub
       } else {
-        logger.warning("No decoy was queued for \(url)")
+        logger.warning("No decoy was queued for url: \(url)")
         return nil
       }
     } else if case .signature(let graphQLSignature) = identifier {
       if let stub = queuedResponses[.signature(graphQLSignature)]?.popLast() {
-        logger.info("Providing decoy for \(graphQLSignature)")
+        logger.info("Providing decoy for graphQLSignature: \(graphQLSignature)")
         return stub
       } else {
-        logger.warning("No decoy was queued for \(graphQLSignature)")
+        logger.warning("No decoy was queued for graphQLSignature: \(graphQLSignature)")
         return nil
       }
     } else {
