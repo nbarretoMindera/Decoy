@@ -79,17 +79,20 @@ public class DecoyURLProtocol: URLProtocol {
       return
     }
 
+    // Sort URL to help comparison between intercepts and mocks
+    let sortedURL = url.sortQueryItemsByName() ?? url
+
     // First, attempt to handle the request with a queued mock.
-    if handleMockResponse(for: url) { return }
+    if handleMockResponse(for: sortedURL) { return }
 
     // No mock available – decide behavior based on Decoy mode.
     guard let mode = DecoyURLProtocol.currentDecoy?.mode else { return }
 
     switch mode {
     case .liveIfUnmocked, .record:
-      performLiveRequest(for: request, url: url)
+      performLiveRequest(for: request, url: sortedURL)
     case .forceOffline:
-      sendForceOfflineError(for: url)
+      sendForceOfflineError(for: sortedURL)
     }
   }
 
