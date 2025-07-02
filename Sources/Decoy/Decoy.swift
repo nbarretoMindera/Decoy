@@ -203,9 +203,17 @@ extension Decoy {
       return
     }
 
+      logInfo("setUp: directory string – \(directory)")
+      logInfo("setUp: filename string – \(filename)")
+
+
     /// Create a URL for the mock file using safe URL initializers.
     var testSpecificMocksURL = URL(safePath: directory)
+    logInfo("setUp: testSpecificMocksURL with directory – \(testSpecificMocksURL)")
     testSpecificMocksURL.safeAppend(path: filename)
+
+      logInfo("setUp: testSpecificMocksURL with directory and name – \(testSpecificMocksURL)")
+
 
     /// If a path to shared mocks (i.e. those which should be applied to the entire suite) was provided,
     /// load them first to ensure that any test-specific mocks will override them in the FILO queue.
@@ -232,7 +240,7 @@ extension Decoy {
           logInfo("setUp: Queued decoy for \(stub.identifier)")
          }
       } catch {
-        logError("setUp: Failed to load specific mocks: \(error.localizedDescription)")
+        logError("setUp: Failed to load specific mocks: \(error.localizedDescription) - \(testSpecificMocksURL)")
       }
   }
 
