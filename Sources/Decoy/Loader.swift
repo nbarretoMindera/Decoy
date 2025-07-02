@@ -6,7 +6,7 @@ protocol LoaderInterface {
   ///
   /// - Parameter url: The URL pointing to the JSON file containing ordered mock responses.
   /// - Returns: An optional array of `Stub` instances, representing the mocked responses.
-  func loadJSON(from url: URL) -> [Stub]?
+  func loadJSON(from url: URL) throws -> [Stub]?
 }
 
 /// Simple type aliases used to improve readability.
@@ -38,6 +38,10 @@ struct Loader: LoaderInterface {
     static let headerFields = "headerFields"
   }
 
+    enum LoaderError: Error {
+    case couldNotParseStubArrayJSON
+  }
+
   let isXCUI: Bool
 
   init(isXCUI: Bool) {
@@ -55,13 +59,16 @@ struct Loader: LoaderInterface {
   /// 3. Converts each dictionary into a `Stub` object.
   ///
   /// If the JSON file cannot be read or the decoding process fails, this method returns `nil`.
-  func loadJSON(from url: URL) -> [Stub]? {
+  func loadJSON(from url: URL) throws -> [Stub]? {
     guard isXCUI else { return nil }
 
-    guard let data = try? Data(contentsOf: url) else { return nil }
-    guard let json = try? JSONSerialization.jsonObject(with: data) as? StubArray else { return nil }
+    let data = try Data(contentsOf: url)
+    let json = try JSONSerialization.jsonObject(with: data)
+    guard let stubArray = json as? StubArray else {
+      throw LoaderError.couldNotParseStubArrayJSON
+    }
 
-    return json.compactMap { stub(from: $0) }
+    return stubArray.compactMap { stub(from: $0) }
   }
 }
 

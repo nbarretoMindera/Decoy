@@ -213,19 +213,27 @@ extension Decoy {
       var sharedMocksURL = URL(safePath: sharedMocksDirectory)
       sharedMocksURL.safeAppend(path: "shared.json")
 
-      loader.loadJSON(from: sharedMocksURL)?.forEach { stub in
-        queue.queue(stub: stub)
-        logInfo("setUp: Queued shared decoy for \(stub.identifier)")
+      do {
+        try loader.loadJSON(from: sharedMocksURL)?.forEach { stub in
+          queue.queue(stub: stub)
+          logInfo("setUp: Queued shared decoy for \(stub.identifier)")
+        }
+      } catch {
+        logError("setUp: Failed to load shared mocks: \(error.localizedDescription)")
       }
     } else {
       logInfo("setUp: No shared decoys found – path not provided.")
     }
 
     /// Queue each loaded test-specific stub for later retrieval.
-    loader.loadJSON(from: testSpecificMocksURL)?.forEach { stub in
-      queue.queue(stub: stub)
-      logInfo("setUp: Queued decoy for \(stub.identifier)")
-    }
+      do {
+        try loader.loadJSON(from: testSpecificMocksURL)?.forEach { stub in
+          queue.queue(stub: stub)
+          logInfo("setUp: Queued decoy for \(stub.identifier)")
+         }
+      } catch {
+        logError("setUp: Failed to load specific mocks: \(error.localizedDescription)")
+      }
   }
 
   /// Initializes a new Decoy instance with a specified `ProcessInfo`.
